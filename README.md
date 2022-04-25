@@ -214,3 +214,6 @@ https://support.touchgfx.com/4.19/docs/introduction/welcome
 
 More qemu
 https://www.youtube.com/watch?v=CdH-cad8DSw
+
+Trusted platfom mode with qemu
+https://www.linaro.org/blog/how-to-emulate-trusted-platform-module-in-qemu-with-u-boot/
