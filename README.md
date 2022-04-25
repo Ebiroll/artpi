@@ -7,7 +7,10 @@ Experience with the STM32H7, Uboot and the Linux kernel on the ART-Pi board
 The board was developed by the
 https://www.rt-thread.org/
 
-It has native support 
+It has kernel and u-boot support. Here is how to build.
+
+https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/tree/master/projects/art_pi_kboot
+
 
 # Devices
 
@@ -197,6 +200,8 @@ https://wiki.segger.com/STM32H7#STM32H753xx.2F50xx.2F43xx_QSPI_support
 
 
 # Somewhat related
+
+https://hackaday.com/2021/05/19/raspberry-pi-rp2040-hands-on-experiences-from-an-stm32-perspective/
 
 Cross compile
 https://jensd.be/1126/linux/cross-compiling-for-arm-or-aarch64-on-debian-or-ubuntu
