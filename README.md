@@ -14,14 +14,42 @@ https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/tree/mast
 
 # Devices
 
-8MiB QSPI flash
-16MiB SPI flash
+8MiB QSPI flash (Boot flash)
+16MiB SPI flash (W25Q64)
 32MiB SDRAM
 AP6212 wifi,bt,fm comb
 
 
 https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi
 
+
+Most of the examples use the following layout,
+
+
+ROM (rx) : ORIGIN =0x08000000,LENGTH =128k
+RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
+
+norflash0 | addr: 0x00000000 | len: 0x01000000 | blk_size: 0x00001000 |initialized finish.
+norflash1 | addr: 0x00000000 | len: 0x00800000 | blk_size: 0x00001000 |initialized finish.
+
+[I/FAL] ==================== FAL partition table ====================
+[I/FAL] | name       | flash_dev |   offset   |    length  |
+[I/FAL] -------------------------------------------------------------
+[I/FAL] | wifi_image | norflash0 | 0x00000000 | 0x00080000 |
+[I/FAL] | bt_image   | norflash0 | 0x00080000 | 0x00080000 |
+[I/FAL] | download   | norflash0 | 0x00100000 | 0x00200000 |
+[I/FAL] | easyflash  | norflash0 | 0x00300000 | 0x00100000 |
+[I/FAL] | filesystem | norflash0 | 0x00400000 | 0x00a00000 |
+[I/FAL] | factory    | norflash0 | 0x00e00000 | 0x00200000 |
+[I/FAL] | app        | norflash1 | 0x00000000 | 0x00800000 |
+
+
+
+
+AP6212 is a low-power and high-performance WiFi+BT4.2 module launched by AMPAK. This module conforms to 802.11b/g/n. The WiFi function adopts SDIO interface, and the Bluetooth adopts UART/I2S/PCM interface, with StationMode, SoftAP, P2P function, etc. The hardware circuit connection of the chip is shown in the figure.
+![WIFI-OTA](./figures/wifi_hardware.png)
+
+(Broadcom BCM43438 A1 chip inside)  https://blog.quarkslab.com/reverse-engineering-broadcom-wireless-chipsets.html
 
 
 # Linux
@@ -217,3 +245,6 @@ https://www.youtube.com/watch?v=CdH-cad8DSw
 
 Trusted platfom mode with qemu
 https://www.linaro.org/blog/how-to-emulate-trusted-platform-module-in-qemu-with-u-boot/
+
+Qemu for stm32
+https://medium.com/@jan_75582/setup-arm-web-application-development-environment-with-qemu-for-stm32-500f5650a489
