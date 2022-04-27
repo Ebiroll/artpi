@@ -40,6 +40,12 @@ norflash1 | addr: 0x00000000 | len: 0x00800000 | blk_size: 0x00001000 |initializ
 [I/FAL] | factory    | norflash0 | 0x00e00000 | 0x00200000 |
 [I/FAL] | app        | norflash1 | 0x00000000 | 0x00800000 |
 
+
+Linker,
+https://stackoverflow.com/questions/51323589/are-all-ram-sections-used-in-this-linkerscript-of-a-stm32h743-microcontroller-c
+
+
+
 From this mapping
 
 ROM (rx) : ORIGIN =0x90000000,LENGTH =8192k
