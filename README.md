@@ -15,7 +15,7 @@ https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/tree/mast
 # Devices
 
 8MiB QSPI flash (Boot flash)
-16MiB SPI flash (W25Q64)
+16MiB SPI flash (W25Q64)              ORIGIN =0x90000000,LENGTH =8192k
 32MiB SDRAM
 AP6212 wifi,bt,fm comb
 
@@ -23,11 +23,8 @@ AP6212 wifi,bt,fm comb
 https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi
 
 
-Most of the examples use the following layout,
-
-
-ROM (rx) : ORIGIN =0x08000000,LENGTH =128k
-RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
+Most of the examples use the following adress mapping,
+```
 
 norflash0 | addr: 0x00000000 | len: 0x01000000 | blk_size: 0x00001000 |initialized finish.
 norflash1 | addr: 0x00000000 | len: 0x00800000 | blk_size: 0x00001000 |initialized finish.
@@ -43,6 +40,24 @@ norflash1 | addr: 0x00000000 | len: 0x00800000 | blk_size: 0x00001000 |initializ
 [I/FAL] | factory    | norflash0 | 0x00e00000 | 0x00200000 |
 [I/FAL] | app        | norflash1 | 0x00000000 | 0x00800000 |
 
+From this mapping
+
+ROM (rx) : ORIGIN =0x90000000,LENGTH =8192k
+RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
+RxDecripSection (rw) : ORIGIN =0x30040000,LENGTH =32k
+TxDecripSection (rw) : ORIGIN =0x30040060,LENGTH =32k
+RxArraySection (rw) : ORIGIN =0x30040200,LENGTH =32k
+ROM (rx)    : ORIGIN =0x08000000,LENGTH =8192k
+
+To this to run in qemu
+
+QFLASH (rx) : ORIGIN =0x90000000,LENGTH =8192k
+RAM (rw)    : ORIGIN =0x24000000,LENGTH =512k
+ROM (rx) : ORIGIN =0x08000000,LENGTH =128k
+RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
+
+
+```
 
 
 
@@ -52,7 +67,7 @@ AP6212 is a low-power and high-performance WiFi+BT4.2 module launched by AMPAK. 
 (Broadcom BCM43438 A1 chip inside)  https://blog.quarkslab.com/reverse-engineering-broadcom-wireless-chipsets.html
 
 
-# Linux
+# Linux for the st32m_h8
 One of the few MMU-less arm boards supported in the kernel source tree
 
 You can learn more about 
@@ -91,6 +106,8 @@ On an ubuntu LTS system
 
    ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make 
 
+
+   ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M  -bios ../artpi/libraries/qemu/bootloader.bin -nographic  -s -S
 
 ### N/A
 $ sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf # for arm32
@@ -143,14 +160,26 @@ Or get latest version
 
 # Run qemu
 
+   You need qemu 7 with patches to emulate the artpi board
+
+   qemu-img create -f raw sd.bin 64M
+   if [ ! -f "sd.bin" ]; then
+     dd if=/dev/zero of=sd.bin bs=1024 count=65536
+   fi
+
+   qemu-system-arm -M artpi -kernel rtthread.elf -serial stdio -sd sd.bin -S -s
+
+
+
    Get a minimal qemu-arm filesystem
+
 
    wget http://downloads.yoctoproject.org/releases/yocto/yocto-2.5/machines/qemu/qemuarm/core-image-minimal-qemuarm.ext4
 
 
     Start qemu 
 
-    ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M netduinoplus2 -cpu cortex-m4 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M -kernel arch/arm/boot/zImage -nographic  -dtb arch/arm/boot/dts/stm32h750i-art-pi.dtb  -append "root=/dev/mmcblk0 rw console=ttymxc0 loglevel=8 earlycon printk" -sd core-image-minimal-qemuarm.ext4 -S
+    ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M -kernel arch/arm/boot/zImage -nographic  -dtb arch/arm/boot/dts/stm32h750i-art-pi.dtb  -append "root=/dev/mmcblk0 rw console=ttymxc0 loglevel=8 earlycon printk" -serial stdio -sd core-image-minimal-qemuarm.ext4 -S
 
 
     Start debugger in other window
@@ -248,3 +277,161 @@ https://www.linaro.org/blog/how-to-emulate-trusted-platform-module-in-qemu-with-
 
 Qemu for stm32
 https://medium.com/@jan_75582/setup-arm-web-application-development-environment-with-qemu-for-stm32-500f5650a489
+
+
+# qemu options
+Not all are needed here, but is saved for reference
+
+    -smp cores=4 -m 1024 -device sdhci-pci -device sd-card,drive=mydrive -drive id=mydrive,if=none,format=raw,file=image.bin
+
+
+    -drive file=flash_image.bin,if=mtd,format=raw
+
+    -global driver=timer.esp32.timg,property=wdt_disable,value=true
+
+    -drive file=sd_image.bin,if=sd,format=raw
+
+
+# Jump to built in bootloader on h7
+
+In STM32H7, the base address of system memory is different from the entry point of the bootloader. 
+
+Thus, in order to jump to the bootloader, address "0x1FF09800" should be used instead of "0x1FFF0000". 
+
+Below, you find a sample code permitting the jump to the bootloader in STM32H7 devices:
+
+```
+void JumpToBootloader(void)
+{
+  uint32_t i=0;
+  void (*SysMemBootJump)(void);
+ 
+  /* Set the address of the entry point to bootloader */
+     volatile uint32_t BootAddr = 0x1FF09800;
+ 
+  /* Disable all interrupts */
+     __disable_irq();
+
+  /* Disable Systick timer */
+     SysTick->CTRL = 0;
+	 
+  /* Set the clock to the default state */
+     HAL_RCC_DeInit();
+
+  /* Clear Interrupt Enable Register & Interrupt Pending Register */
+     for (i=0;i<5;i++)
+     {
+	  NVIC->ICER[i]=0xFFFFFFFF;
+	  NVIC->ICPR[i]=0xFFFFFFFF;
+     }	
+	 
+  /* Re-enable all interrupts */
+     __enable_irq();
+	
+  /* Set up the jump to booloader address + 4 */
+     SysMemBootJump = (void (*)(void)) (*((uint32_t *) ((BootAddr + 4))));
+ 
+  /* Set the main stack pointer to the bootloader stack */
+     __set_MSP(*(uint32_t *)BootAddr);
+ 
+  /* Call the function to jump to bootloader location */
+     SysMemBootJump(); 
+  
+  /* Jump is done successfully */
+     while (1)
+     {
+      /* Code should never reach this loop */
+     }
+}
+
+```
+
+
+gdb-multiarch u-boot -ex 'target remote:1234'
+
+(gdb) s $pc=0x90000f46+1
+
+Possibility to run in qemu.
+https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/commit/244051251dddd944cccfa478a84e67e812cfbc6b
+
+nvalid read at addr 0x9003EAE4, size 4, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
+Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
+
+
