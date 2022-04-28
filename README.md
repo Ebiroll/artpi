@@ -44,6 +44,13 @@ norflash1 | addr: 0x00000000 | len: 0x00800000 | blk_size: 0x00001000 |initializ
 Linker,
 https://stackoverflow.com/questions/51323589/are-all-ram-sections-used-in-this-linkerscript-of-a-stm32h743-microcontroller-c
 
+Internal memory,
+
+ DTCMRAM:         128 KB 
+ RAM_D1:          512 KB 
+ RAM_D2:          288 KB 
+ RAM_D3:          64 KB  
+ ITCMRAM:         64 KB  
 
 
 From this mapping
@@ -61,6 +68,29 @@ QFLASH (rx) : ORIGIN =0x90000000,LENGTH =8192k
 RAM (rw)    : ORIGIN =0x24000000,LENGTH =512k
 ROM (rx) : ORIGIN =0x08000000,LENGTH =128k
 RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
+
+
+   .section  .vectors
+ENTRY(_start)
+	.long	CONFIG_SYS_INIT_SP_ADDR		@ 0 - Reset stack pointer
+	.long	reset				@ 1 - Reset
+	.long	__invalid_entry			@ 2 - NMI
+	.long	__hard_fault_entry		@ 3 - HardFault
+	.long	__mm_fault_entry		@ 4 - MemManage
+	.long	__bus_fault_entry		@ 5 - BusFault
+	.long	__usage_fault_entry		@ 6 - UsageFault
+	.long	__invalid_entry			@ 7 - Reserved
+	.long	__invalid_entry			@ 8 - Reserved
+	.long	__invalid_entry			@ 9 - Reserved
+	.long	__invalid_entry			@ 10 - Reserved
+	.long	__invalid_entry			@ 11 - SVCall
+	.long	__invalid_entry			@ 12 - Debug Monitor
+	.long	__invalid_entry			@ 13 - Reserved
+	.long	__invalid_entry			@ 14 - PendSV
+	.long	__invalid_entry			@ 15 - SysTick
+	.rept	255 - 16
+	.long	__invalid_entry			@ 16..255 - External Interrupts
+	.endr
 
 
 ```
@@ -114,6 +144,10 @@ On an ubuntu LTS system
 
 
    ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M  -bios ../artpi/libraries/qemu/bootloader.bin -nographic  -s -S
+
+   ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M -kernel u-boot  -nographic  -s -S
+
+   gdb --args ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M  -bios  bootloader.bin -nographic  -s -S -kernel u-boot
 
 ### N/A
 $ sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf # for arm32
