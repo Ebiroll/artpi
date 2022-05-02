@@ -56,6 +56,10 @@ OBJECT_DECLARE_SIMPLE_TYPE(STM32H750State, STM32H750_SOC)
 // 8000 * 1024,  MPU_REGION_SIZE_32MB
 
 
+#define SPI_FLASH_BASE_ADDRESS 0x90000000
+#define SPI_FLASH__SIZE 8 * (1024 * 1024)
+
+
 // ----------------- PWR_CRC_RCC
 
 
@@ -95,6 +99,7 @@ struct STM32H750State {
     MemoryRegion sram;
     MemoryRegion flash;
     MemoryRegion flash_alias;
+    MemoryRegion spi_flash;
 
     MemoryRegion dram;
     MemoryRegion  RAM_D1;

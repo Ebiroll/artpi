@@ -332,6 +332,24 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
 
     memory_region_add_subregion(system_memory, DRAM_BASE_ADDRESS,  &s->dram);
 
+//spi_flash
+
+    // spi_flash, olas...
+    memory_region_init_ram(&s->spi_flash, OBJECT(dev_soc), "STM32H750.spiflash", SPI_FLASH__SIZE,
+                           &err);
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
+
+    memory_region_add_subregion(system_memory, SPI_FLASH_BASE_ADDRESS,  &s->spi_flash);
+
+
+
+// #define SPI_FLASH_BASE_ADDRESS 0x90000000
+// #define SPI_FLASH__SIZE 8 * (1024 * 1024)
+
+
 
     armv7m = DEVICE(&s->armv7m);
     qdev_prop_set_uint32(armv7m, "num-irq", 96);
