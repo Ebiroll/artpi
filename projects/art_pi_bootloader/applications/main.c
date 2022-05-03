@@ -8,15 +8,15 @@
  * 2020-05-15     RT-Thread    first version
  */
 
-#include <rtthread.h>
-#include <rtdevice.h>
+//#include <rtthread.h>
+//#include <rtdevice.h>
 #include <board.h>
-#include <drv_common.h>
+//#include <drv_common.h>
 #include "w25qxx.h"
 
 #define DBG_TAG "main"
 #define DBG_LVL DBG_LOG
-#include <rtdbg.h>
+//#include <rtdbg.h>
 
 /* defined the LED0 pin: PB1 */
 #define LED0_PIN    GET_PIN(I, 8)
@@ -27,10 +27,12 @@
 typedef void (*pFunction)(void);
 pFunction JumpToApplication;
 
+
+
 int main(void)
 {
     /* set LED0 pin mode to output */
-    rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);
+    // rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);
 
 #ifndef FIRMWARE_EXEC_USING_QEMU
     W25QXX_Init();
@@ -48,4 +50,12 @@ int main(void)
     JumpToApplication();
 
     return RT_EOK;
+}
+
+
+int entry(void)
+{
+    SystemInit();
+    main();
+    return 0;
 }

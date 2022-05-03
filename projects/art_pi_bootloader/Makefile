@@ -3,7 +3,8 @@
 #
 #
 #--------------------------------------------------
-
+# Use the -S option to gcc (or g++), optionally with -fverbose-asm which works well at the default -O0 to attach C names to asm operands as comments.
+# https://stackoverflow.com/questions/137038/how-do-you-get-assembler-output-from-c-c-source-in-gcc
 
 TARGET ?= classA
 
@@ -14,7 +15,7 @@ TARGET ?= classA
 #OBJCOPY  = $(GCC_ROOT)/bin/arm-none-eabi-objcopy
 #OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
 
-GCC_ROOT = /usr
+GCC_ROOT = /home/olof/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/
 CC       = $(GCC_ROOT)/bin/arm-linux-gnueabi-gcc
 CXX      = $(GCC_ROOT)/bin/arm-linux-gnueabi-g++
 LD      = $(GCC_ROOT)/bin/arm-linux-gnueabi-ld
@@ -24,9 +25,12 @@ OBJSIZE  = $(GCC_ROOT)/bin/arm-linux-gnueabi-size
 # ../libraries/STM32H7xx_HAL/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h750xx.s
 
 PLATFORM = RAK811BreakBoard
-DEVICE   = STM32H750XBHx
+DEVICE   = STM32H750xx
 MCU      = stm32
-LINKER_DEF = board/linker_scripts/STM32H750XBHx/link.lds
+LINKER_DEF = board/linker_scripts/STM32H750XBHx/link_rt.lds
+#rt-thread/bsp/stm32/stm32h750-artpi-h750/board/linker_scripts/link.lds
+
+
 BUILD    = Debug
 
 
@@ -35,8 +39,12 @@ INCLUDE_DIRS := $(GCC_ROOT)/arm-linux-gnueabi/include
 
 
 #====================================================
-C_SRCS := \
-	board/board.c 
+C_SRCS := board/CubeMX_Config/Core/Src/main.c  \
+	board/board.c \
+	board/drv_mpu.c \
+	board/CubeMX_Config/Core/Src/system_stm32h7xx.c
+
+#	applications/main.c
 
 
 #	coIDE/classA/components/coocox-master/Retarget_printf/source/printf.c \
@@ -94,8 +102,8 @@ C_SRCS := \
 #	src/boards/mcu/$(MCU)/$(DEVICE)/Src/stm32h7xx_hal_pwr.c \
 #	src/boards/mcu/$(MCU)/$(DEVICE)/Src/stm32h7xx_hal_spi.c 
 
-A_SRCS := \
-	../libraries/STM32H7xx_HAL/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h750xx.s
+A_SRCS := startup_stm32h750xx.s 
+# ../../libraries/STM32H7xx_HAL/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/
 
 INCLUDE_DIRS += \
 	src  \
@@ -109,7 +117,13 @@ INCLUDE_DIRS += \
 	src/peripherals  \
 	src/radio  \
 	src/system  \
-	src/system/crypto
+	src/system/crypto \
+	applications \
+	board \
+	board/CubeMX_Config/Core/Inc \
+	../../libraries/STM32H7xx_HAL/STM32H7xx_HAL_Driver/Inc  \
+	../../libraries/STM32H7xx_HAL/CMSIS/Device/ST/STM32H7xx/Include \
+	../../libraries/STM32H7xx_HAL/CMSIS/Include/
 
 
 C_OBJS := ${C_SRCS:.c=.o}
@@ -119,48 +133,59 @@ OBJS := $(C_OBJS) $(A_OBJS)
 
 CFLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir))
 
-CFLAGS += -DSTM32H7
+CFLAGS += -DSTM32H750xx
 CFLAGS += -DUSE_HAL_DRIVER
-CFLAGS += -DREGION_EU868
+CFLAGS += -DREGION_EU868 -Dgcc
  
 ifeq ($(BUILD),Debug)
 CFLAGS += -DUSE_DEBUGGER
 endif
 
-#for the C
-CFLAGS += -mcpu=cortex-m3 -mthumb -g2 -Wall -Os -c
-CFLAGS += -MMD -MP -MF"${@:.o=.d}" -MT"$@" -o "$@"
-CFLAGS += -fno-builtin-printf
+# -x assembler-with-cpp -Wa,-mimplicit-it=thumb 
+#  should be,  -mfloat-abi=hard
 
+DEVICE = -mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=soft -ffunction-sections -fdata-sections 
+# call cc-option, -msoft-float
+
+#for the C
+CFLAGS +=  $(DEVICE)-g2 -Wall -Os -c
+CFLAGS += -MMD -MP -MF"${@:.o=.d}" -MT"$@" -o "$@"
+CFLAGS += -msoft-float
+#  -eentry -fno-builtin-printf
 
 #for the stub
-ASFLAGS += -g -gdwarf-2 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp -c 
+ASFLAGS +=  $(DEVICE) -g  -x assembler-with-cpp -Wa,-mimplicit-it=thumb 
+# -x assembler-w -c 
 
 #for the linker
-CXXFLAGS := -mcpu=cortex-m7 -mthumb -gdwarf-2 -Os -g2 -g
-CXXFLAGS += -Wl,--gc-sections --specs=nano.specs 
+CXXFLAGS := -mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -Os -g2 -g
+# -O0
+# LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T board/linker_scripts/link.lds'
+CXXFLAGS += $(DEVICE) -Wl,--gc-sections
+#  --specs=nano.specs 
 CXXFLAGS += -Xlinker -Map="$(BUILD)/$(TARGET).map"
 
 .PHONY: all clean distclean
 
 all: $(TARGET)
-	
+
 %.o: %.c
 	$(CC) $(CFLAGS)  "$<"
 
 ## Build Stub
 %.o: %.s
-	mkdir $(BUILD)
+	mkdir -p  $(BUILD)
 	$(CC) $(ASFLAGS) -o "$@" "$<"
 
 ## Link
 $(TARGET): $(OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU ARM C++ Linker'
-	$(CC) $(CXXFLAGS)  -T "$(LINKER_DEF)" -o $(BUILD)/$(TARGET).axf $(OBJS) $(S_OBJS)
+	$(CC) $(CXXFLAGS) -cref,-u,Reset_Handler  -T "$(LINKER_DEF)" -o $(BUILD)/$(TARGET).axf $(OBJS) $(S_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
+# -cref,-u,Reset_Handler -T board/linker_scripts/link.lds'
 
 	@echo 'Building hex file: $(BUILD)/$(TARGET).hex'
 	$(OBJCOPY) -O ihex "$(BUILD)/$(TARGET).axf" "$(BUILD)/$(TARGET).hex"

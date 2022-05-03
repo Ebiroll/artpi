@@ -11,9 +11,15 @@
 #ifndef __BOARD_H__
 #define __BOARD_H__
 
-#include <rtthread.h>
+//#include <rtthread.h>
 #include <stm32h7xx.h>
-#include <drv_common.h>
+//#include <drv_common.h>
+
+#define RT_EOK 0 
+#define RT_ERROR 1 
+#define RT_ETIMEOUT 2 
+#define RT_EFULL 3 
+
 
 #ifdef __cplusplus
 extern "C"

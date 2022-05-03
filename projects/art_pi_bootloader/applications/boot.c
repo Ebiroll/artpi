@@ -8,13 +8,13 @@
  * 2020-09-25     armink       the first version
  */
 
-#include <rthw.h>
-#include <rtthread.h>
+//#include <rthw.h>
+//#include <rtthread.h>
 #include "w25qxx.h"
 
-void rt_application_init(void);
-void rt_hw_board_init(void);
-int rtthread_startup(void);
+//void rt_application_init(void);
+//void rt_hw_board_init(void);
+//int rtthread_startup(void);
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
 extern int $Super$$main(void);
@@ -39,7 +39,7 @@ int __low_level_init(void)
 /* Add -eentry to arm-none-eabi-gcc argument */
 int entry(void)
 {
-    rtthread_startup();
+    //rtthread_startup();
     return 0;
 }
 #endif
@@ -47,8 +47,8 @@ int entry(void)
 #ifndef RT_USING_HEAP
 /* if there is not enable heap, we should use static thread and stack. */
 ALIGN(8)
-static rt_uint8_t main_stack[RT_MAIN_THREAD_STACK_SIZE];
-struct rt_thread main_thread;
+//static rt_uint8_t main_stack[RT_MAIN_THREAD_STACK_SIZE];
+//struct rt_thread main_thread;
 #endif
 
 /* the system main thread */
@@ -103,7 +103,7 @@ void art_pi_boot_show_logo(void)
     rt_kprintf(" |  _  ||    /   | |  |______||  __/ | |  | ___ \\| | | || | | |  | |  \n");
     rt_kprintf(" | | | || |\\ \\   | |          | |    | |  | |_/ /\\ \\_/ /\\ \\_/ /  | |  \n");
     rt_kprintf(" \\_| |_/\\_| \\_|  \\_/          \\_|    |_|  \\____/  \\___/  \\___/   \\_/  \n");
-    rt_kprintf("\n Powered by RT-Thread.\n\n");
+    rt_kprintf("\n Not Powered by RT-Thread.\n\n");
 }
 
 int rtthread_startup(void)
