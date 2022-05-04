@@ -46,10 +46,17 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
     switch (offset) {
           case 0x0:
             res = s->cfg;
+            static char bit_num=0;
+            bit_num = bit_num +1;
+            if (bit_num == 32) {
+                bit_num=0;
+            }
+            res= (16384 | (1 << bit_num));
+
             qemu_log_mask(LOG_UNIMP,
                 "stm32h7xx_powermgt_read: cfg offset 0x%08"HWADDR_PRIx
-                "\n", offset);
-            res=16384;
+                " %d\n", offset,res);
+                // RCC_FLAG_HSERDY
         break;
 
           /*
@@ -225,6 +232,9 @@ static void stm32h750_soc_initfn(Object *obj)
         object_initialize_child(obj, "spi[*]", &s->spi[i], TYPE_STM32F2XX_SPI);
     }
 
+   object_initialize_child(obj, "qspi", &s->qspi,TYPE_STM32_QSPI);
+
+
     object_initialize_child(obj, "exti", &s->exti, TYPE_STM32F4XX_EXTI);
 
     s->sysclk = qdev_init_clock_in(DEVICE(s), "sysclk", NULL, NULL, 0);
@@ -301,17 +311,17 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
 // Stack start     0x24044440
 //                 0x24000938
 
- memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H750.RAM_D1",
-                           RAM_D1_SIZE, &err);
+    memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H750.RAM_D1",
+                            RAM_D1_SIZE, &err);
 
-//                      invalid             0x24000938
-// From qemu bootloader
- memory_region_add_subregion(system_memory, 0x24000000, &s->RAM_D1);
+    //                      invalid             0x24000938
+    // From qemu bootloader
+    memory_region_add_subregion(system_memory, 0x24000000, &s->RAM_D1);
 
- if (err != NULL) {
-    error_propagate(errp, err);
-    return;
- }
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
 
 /*
  DTCMRAM:         128 KB 
@@ -434,6 +444,17 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
         sysbus_mmio_map(busdev, 0, spi_addr[i]);
         sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(armv7m, spi_irq[i]));
     }
+    {
+        dev = DEVICE(&s->qspi);
+        if (!sysbus_realize(SYS_BUS_DEVICE(&s->qspi), errp)) {
+            return;
+        }
+        busdev = SYS_BUS_DEVICE(dev);
+        sysbus_mmio_map(busdev, 0, 0x52005000);
+        sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(armv7m, 92));
+        
+    }
+   // "QUADSPI",0x52005000,0x400
 
     /* EXTI device */
     dev = DEVICE(&s->exti);
@@ -477,8 +498,8 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
     create_unimplemented_device("CRS_SWPMI",0x40008400,0x800);
     create_unimplemented_device("MDIOS_OPAMP",0x40009000,0x800);
     create_unimplemented_device("FDCAN1_FDCAN2_CAN_CCU",0x4000a000,0xc00);
-    create_unimplemented_device("TIM1_TIM8",0x40010000,0x800);
-    create_unimplemented_device("USART1_USART6",0x40011000,0x800);
+    //create_unimplemented_device("TIM1_TIM8",0x40010000,0x800);
+    //create_unimplemented_device("USART1_USART6",0x40011000,0x800);
     create_unimplemented_device("SPI1_SPI4",0x40013000,0x800);
     create_unimplemented_device("TIM16_TIM17_TIM15",0x40014000,0xc00);
     create_unimplemented_device("SPI5",0x40015000,0x400);
@@ -503,7 +524,7 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
     create_unimplemented_device("DMA2D_MDMA",0x52000000,0x1400);
     create_unimplemented_device("JPEG_Flash",0x52002000,0x1400);
     create_unimplemented_device("FMC",0x52004000,0x400);
-    create_unimplemented_device("QUADSPI",0x52005000,0x400);
+    //create_unimplemented_device("QUADSPI",0x52005000,0x400);
     create_unimplemented_device("SDMMC1_DELAY_Block_QUADSPI",0x52006000,0x13fd);
     create_unimplemented_device("DELAY_Block_SDMMC1",0x52008000,0x1000);
     create_unimplemented_device("SYSCFG_EXTI",0x58000000,0x800);

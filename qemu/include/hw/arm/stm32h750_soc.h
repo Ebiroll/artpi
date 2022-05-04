@@ -33,6 +33,7 @@
 #include "hw/misc/stm32f4xx_exti.h"
 #include "hw/or-irq.h"
 #include "hw/ssi/stm32f2xx_spi.h"
+#include "hw/ssi/stm32_qspi.h"
 #include "hw/arm/armv7m.h"
 #include "qom/object.h"
 
@@ -95,6 +96,7 @@ struct STM32H750State {
     qemu_or_irq adc_irqs;
     STM32F2XXADCState adc[STM_NUM_ADCS];
     STM32F2XXSPIState spi[STM_NUM_SPIS];
+    STM32QSPIState qspi;
 
     MemoryRegion sram;
     MemoryRegion flash;
