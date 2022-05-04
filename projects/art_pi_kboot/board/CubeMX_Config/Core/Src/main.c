@@ -18,6 +18,18 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32h7xx_hal.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -41,7 +53,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-QSPI_HandleTypeDef hqspi;
+extern QSPI_HandleTypeDef hqspi;
 
 SPI_HandleTypeDef hspi1;
 

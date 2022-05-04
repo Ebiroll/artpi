@@ -138,6 +138,53 @@ On an ubuntu LTS system
 
    git clone https://github.com/u-boot/u-boot
 
+
+
+      * _main execution sequence is:
+   *
+   * 1. Set up initial environment for calling board_init_f().
+   *    This environment only provides a stack and a place to store
+   *    the GD ('global data') structure, both located in some readily
+   *    available RAM (SRAM, locked cache...). In this context, VARIABLE
+   *    global data, initialized or not (BSS), are UNAVAILABLE; only
+   *    CONSTANT initialized data are available. GD should be zeroed
+   *    before board_init_f() is called.
+   *  Note that register r9 points to gd.
+   *
+   * 2. Call board_init_f(). This function prepares the hardware for
+   *    execution from system RAM (DRAM, DDR...) As system RAM may not
+   *    be available yet, , board_init_f() must use the current GD to
+   *    store any data which must be passed on to later stages. These
+   *    data include the relocation destination, the future stack, and
+   *    the future GD location.
+   *
+   * 3. Set up intermediate environment where the stack and GD are the
+   *    ones allocated by board_init_f() in system RAM, but BSS and
+   *    initialized non-const data are still not available.
+   *
+   * 4a.For U-Boot proper (not SPL), call relocate_code(). This function
+   *    relocates U-Boot from its current location into the relocation
+   *    destination computed by board_init_f().
+   *
+   * 4b.For SPL, board_init_f() just returns (to crt0). There is no
+   *    code relocation in SPL.
+   *
+   * 5. Set up final environment for calling board_init_r(). This
+   *    environment has BSS (initialized to 0), initialized non-const
+   *    data (initialized to their intended value), and stack in system
+   *    RAM (for SPL moving the stack and GD into RAM is optional - see
+   *    CONFIG_SPL_STACK_R). GD has retained values set by board_init_f().
+   *
+   * 6. For U-Boot proper (not SPL), some CPUs have some work left to do
+   *    at this point regarding memory, so call c_runtime_cpu_setup.
+   *
+   * 7. Branch to board_init_r().
+   *
+   * For more information see 'Board Initialisation Flow in README.
+   */
+
+
+
    ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make stm32h750-art-pi_defconfig
 
    ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make 
@@ -149,10 +196,16 @@ On an ubuntu LTS system
 
    gdb --args ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M  -bios  bootloader.bin -nographic  -s -S -kernel u-boot
 
-### N/A
+### Hardfloat use this toolchain
+
 $ sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf # for arm32
 $ sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu     # for arm64
 
+### Linaro toolchain differences
+   https://wiki-archive.linaro.org/WorkingGroups/ToolChain/FAQ#What_is_the_differences_between_.2BIBw-arm-none-eabi-.2BIB0_and_.2BIBw-arm-linux-gnueabihf.2BIB0.3F_Can_I_use_.2BIBw-arm-linux-gnueabihf.2BIB0_tool_chain_in_bare-metal_environment.3F_How_do_you_know_which_toolchain_binary_to_use_where.3F
+
+
+   wget https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi.tar.xz
 
 ### Optional is to install Linaro arm cross compiler
    Optional

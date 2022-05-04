@@ -7,7 +7,6 @@
  * Date           Author       Notes
  * 2019-04-14     whj4674672   first version
  */
-#include <rtthread.h>
 #include "stm32h7xx.h"
 #include "board.h"
 #include "w25qxx.h"

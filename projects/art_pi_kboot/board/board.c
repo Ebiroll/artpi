@@ -8,13 +8,10 @@
  * 2020-07-29     RealThread   first version
  */
 
-#include <rtthread.h>
 #include <board.h>
-#include <drv_common.h>
+#include <stm32h7xx_hal_rcc.h>
+void Error_Handler(void);
 
-#define DBG_TAG "board"
-#define DBG_LVL DBG_INFO
-#include <rtdbg.h>
 
 void system_clock_config(int target_freq_mhz)
 {
@@ -105,7 +102,7 @@ void clk_init(char *clk_source, int source_freq, int target_freq)
 }
 
 
-RT_WEAK void rt_hw_board_init()
+__weak void rt_hw_board_init()
 {
     extern void hw_board_init(char *clock_src, int32_t clock_src_freq, int32_t clock_target_freq);
 
@@ -114,7 +111,8 @@ RT_WEAK void rt_hw_board_init()
     rt_system_heap_init((void *) HEAP_BEGIN, (void *) HEAP_END);
 #endif
 
-    hw_board_init(BSP_CLOCK_SOURCE, BSP_CLOCK_SOURCE_FREQ_MHZ, BSP_CLOCK_SYSTEM_FREQ_MHZ);
+    // olas
+    //hw_board_init(BSP_CLOCK_SOURCE, BSP_CLOCK_SOURCE_FREQ_MHZ, BSP_CLOCK_SYSTEM_FREQ_MHZ);
 
     /* Set the shell console output device */
 #if defined(RT_USING_DEVICE) && defined(RT_USING_CONSOLE)
