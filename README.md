@@ -2,14 +2,99 @@
 Experience with the STM32H7, Uboot and the Linux kernel on the ART-Pi board 
 
 
-
 # Why
 The board was developed by the
 https://www.rt-thread.org/
 
-It has kernel and u-boot support. Here is how to build.
+It has kernel and u-boot support. Here is how it works.
 
 https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/tree/master/projects/art_pi_kboot
+
+To understand better the ry command, you must look in the art_pi_kboot project:
+ Most significantly here, projects/art_pi_kboot/applications/main.c
+ The command ry is added to MSH that uploads binaries with YMODEM.
+ 
+I have modified the original project to be able to run without RT-Thread
+and instead run as far as possible with qemu. The patches in the qemu folder relies on qemu 7.0
+
+   > gdb u-boot -ex 'target remote:1234'
+
+This is a great oportunity to learn more about arm, the stm32h7, uboot, Ghidra, qemu and arm Linux kernel without MMU support.
+
+
+
+   "bootargs=console=ttySTM0,2000000 root=/dev/ram loglevel=8"
+
+   Note from the device tree,
+   aliases {
+		serial0 = &uart4;
+		serial1 = &usart3;
+	};
+
+So far with this qemu it hangs here common/board_f.c
+     if (initcall_run_list(init_sequence_f)) 
+       hang(); 
+
+## Arm simulator
+
+To fiddle with simple arm programs, 
+
+https://cpulator.01xz.net/?sys=arm
+
+
+## Precautions for the artpi
+
+- Debug serial port to serial port 4 mapping instructions
+
+    PI9 ------> USART4_RX
+
+    PA0 ------> USART4_TX
+
+
+   On the art-pi board uart4 is connected to the Stlink
+
+## Some notes from running u-boot
+
+
+When looking at the sources and reverse engineering the u-boot binary in
+/projects/art_pi_kboot/demo
+It seems like the Device tree blob should be located at,
+   fdt_blob = 0x9004_0044
+
+Other boot-time parameters,
+
+   kernel_addr_r=0xC000_8000
+   fdtfile=stm32h750i-art-pi.dtb
+   fdt_addr_r=0xC0408000
+   scriptaddr=0xC0418000
+   pxefile_addr_r=0xC0428000
+   ramdisk_addr_r=0xC0438000
+   boot_scripts=boot.scr.uimg boot.scr
+
+global_data is a structure used by u-boot.
+   struct global_data *gd_ptr;
+   r9 + 0x70
+
+
+   (gdb) p *gd_ptr             
+   $13 = {bd = 0x0, flags = 0, baudrate = 0, cpu_clk = 0, bus_clk = 0, pci_clk = 0, mem_clk = 0, have_console = 0,
+   env_addr = 0,	env_valid = 0, env_has_init = 0, env_load_prio = 0, ram_base = 0, ram_top = 0, relocaddr = 0,
+   ram_size = 0,	mon_len = 241896, irq_sp = 0, start_addr_sp = 0, reloc_off = 0,	new_gd = 0x0, dm_root = 0x0,
+   dm_root_f = 0x0, uclass_root_s = {next = 0x0,	prev = 0x0}, uclass_root = 0x0,	timer = 0x0, 
+   fdt_blob = 0x90040044, new_fdt = 0x0,	fdt_size = 0, fdt_src = FDTSRC_SEPARATE, jt = 0x0,
+   env_buf = '\000' * 31 , timebase_h = 0, timebase_l = 0, malloc_base = 604238080,	malloc_limit = 0,
+   malloc_ptr = 0, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0, tbu = 0, tbl = 0, lastinc = 0,
+    timer_reset_value = 0, tlb_addr = 0, tlb_size = 0}, dmtag_list = {next = 0x0, prev = 0x0}}
+
+When using qemu we can load u-boot and kernel
+
+(gdb) restore u-boot-org binary 0x90000000 0 275089
+(gdb) restore art.itb binary 0x90080000 0 4822940
+
+(gdb) p/x *0x90000004
+(gdb) s	$pc=0x900003fd
+
+
 
 
 # Devices

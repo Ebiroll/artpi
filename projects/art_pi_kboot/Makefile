@@ -26,6 +26,7 @@ OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
 
 PLATFORM = RAK811BreakBoard
 DEVICE   = STM32H750xx
+# STM32H750XBHx
 MCU      = stm32
 LINKER_DEF = board/linker_scripts/STM32H750XBHx/link.lds
 #rt-thread/bsp/stm32/stm32h750-artpi-h750/board/linker_scripts/link.lds
