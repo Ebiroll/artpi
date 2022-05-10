@@ -106,10 +106,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
+#if 1
+    uint8_t Test[] = "Hello World !!!\r\n"; //Data to send
+    HAL_UART_Transmit(&huart4,Test,sizeof(Test),10);// Sending in normal mode
+    HAL_Delay(1000);    /* USER CODE BEGIN 3 */
+#endif
   /* USER CODE END 3 */
+  }
 }
 
 /**
