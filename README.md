@@ -215,7 +215,7 @@ On an ubuntu LTS system
 
    apt install git make gcc device-tree-compiler bison flex libssl-dev libncurses-dev python3-ply python3-git libgmp3-dev libmpc-dev
 
-   sudo apt-get install libc6-armel-cross gcc-arm-linux-gnueabi libc6-dev-armel-cross binutils-arm-linux-gnueabi libncurses5-dev build-essential bison flex libssl-dev bc
+   sudo apt-get install libc6-armel-cross gcc-arm-none-eabi libc6-dev-armel-cross binutils-arm-none-eabi libncurses5-dev build-essential bison flex libssl-dev bc
 
    sudo apt install gdb-multiarch
 
