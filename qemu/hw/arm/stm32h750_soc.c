@@ -216,7 +216,7 @@ static void stm32h750_soc_initfn(Object *obj)
 
     for (i = 0; i < STM_NUM_USARTS; i++) {
         object_initialize_child(obj, "usart[*]", &s->usart[i],
-                                TYPE_STM32F2XX_USART);
+                                TYPE_STM32_UART);
     }
 
     for (i = 0; i < STM_NUM_TIMERS; i++) {
