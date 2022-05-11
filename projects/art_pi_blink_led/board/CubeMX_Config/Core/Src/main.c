@@ -102,6 +102,9 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
+// We load this binary into ram and do not perform init
+# if 0
+
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -129,12 +132,12 @@ int main(void)
   MX_UART4_Init();
   MX_SPI1_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_PCD_Init();
+  //MX_USB_OTG_FS_PCD_Init();
   MX_ADC1_Init();
   MX_TIM5_Init();
-  MX_LPTIM1_Init();
+  //MX_LPTIM1_Init();
   /* USER CODE BEGIN 2 */
-
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,6 +147,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+#if 1
+    uint8_t Test[] = "Hello World !!!\r\n"; //Data to send
+    HAL_UART_Transmit(&huart4,Test,sizeof(Test),10);// Sending in normal mode
+    HAL_Delay(1000);    /* USER CODE BEGIN 3 */
+#endif
+
   }
   /* USER CODE END 3 */
 }

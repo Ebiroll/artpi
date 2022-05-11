@@ -139,6 +139,7 @@
   */
 void SystemInit (void)
 {
+ #if 0 
 #if defined (DATA_IN_D2_SRAM)
  __IO uint32_t tmpreg;
 #endif /* DATA_IN_D2_SRAM */
@@ -268,7 +269,7 @@ void SystemInit (void)
 #endif
 
 #endif /*DUAL_CORE && CORE_CM4*/
-
+#endif
 }
 
 /**
