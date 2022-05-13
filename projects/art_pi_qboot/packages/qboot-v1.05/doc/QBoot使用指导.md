@@ -1,21 +1,20 @@
-﻿# QBoot使用指导 —— 基于RT-Thread 4.0快速打造bootloader
+﻿# QBoot usage guide - quickly build a bootloader based on RT-Thread 4.0
 
-## 1. QBoot组件简介
+## 1. Introduction to QBoot components
 
-#### QBoot组件全称是Quick bootloader，是用于快速制作bootloader程序的专用组件，组件说明详见[组件readme](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/readme.md)。本组件的设计初衷是帮助大家加速bootloader程序开发速度。组件基于RT-Thread 4.0设计，依赖Fal、crclib组件工作。目前版本V1.00，仅支持ARM系列芯片（作者也仅在STM32系列芯片上进行过测试），从下一版本V1.10将加入更多架构芯片的支持，希望大家提供帮助和支持。欢迎大家使用QBoot组件。
+#### The full name of the QBoot component is Quick bootloader, which is a special component used to quickly create a bootloader program. For the component description, please refer to [Component readme](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master /readme.md). The original intention of this component is to help you speed up the development of bootloader programs. The components are designed based on RT-Thread 4.0 and rely on Fal and crclib components to work. The current version V1.00 only supports ARM series chips (the author has only tested it on STM32 series chips). The next version V1.10 will add support for more architecture chips. I hope you can provide help and support. Welcome to the QBoot component.
 
-## 2. QBoot使用示例
+## 2. QBoot usage example
 
-### 2.1 创建基础工程
+### 2.1 Create basic project
 
-#### 2.1.1 使用RT-Thread Studio基于芯片创建工程（本示例使用的芯片型号是STM32L4R5ZI）
+#### 2.1.1 Use RT-Thread Studio to create a project based on the chip (the chip model used in this example is STM32L4R5ZI)
 ![](figures/QBoot_sample_t01.jpg)
 
-#### 2.1.2 修改board.h
+#### 2.1.2 Modify board.h
 
-##### 修改Flash和Ram尺寸定义：
-```
-#define ROM_START  ((uint32_t)0x08000000)
+##### Modify Flash and Ram size definitions:
+````#define ROM_START  ((uint32_t)0x08000000)
 #define ROM_SIZE   (2048)
 #define ROM_END((uint32_t)(ROM_START + ROM_SIZE * 1024))
 
@@ -34,40 +33,43 @@
 #define RAM_END                (RAM_START + RAM_SIZE)
 ```
 
-##### 加入芯片flash驱动：
-```
+##### Add chip flash driver:
+````
 /*#define BSP_USING_ON_CHIP_FLASH*/
-```
-##### 修改为
-```
+````
+##### change into
+````
 #define BSP_USING_ON_CHIP_FLASH
-```
+````
 
-##### 如果你使用了spi flash则须加入spi驱动，本示例未使用，在此不再赘述。
+##### If you use spi flash, you must add the spi driver. This example does not use it, so I won't repeat it here.
 
-#### 2.1.3 修改main.c，删除main函数内的所有代码，仅保留`return RT_EOK;`
-```
+#### 2.1.3 Modify main.c, delete all the code in the main function, only keep `return RT_EOK;`
+````
 int main(void)
 {
     return RT_EOK;
 }
-```
+````
 
-#### 2.1.4使用CubeMX生成芯片低层初始化代码，并保存到工程的`driver`文件夹下
-##### project配置如下：
+#### 2.1.4 Use CubeMX to generate the low-level initialization code of the chip and save it to the `driver` folder of the project
+##### The project configuration is as follows:
+
 ![](figures/QBoot_sample_t02.jpg)
-##### code generator配置如下：
+
+##### The code generator is configured as follows:
 ![](figures/QBoot_sample_t03.jpg)
-##### 刷新Studio工程，将`driver/CubeMX_Config/EWARM`目录排除在构建之外，将`driver/CubeMX_Config/src`目录下除`stm32l4xx_hal_msp.c`之外的其它文件排除在构建之外，将`driver/CubeMX_Config/inc`目录下除`main.h`之外的其它文件删除，完成后如下图所示：
+
+##### Refresh the Studio project, exclude the `driver/CubeMX_Config/EWARM` directory from the build, and exclude other files in the `driver/CubeMX_Config/src` directory except `stm32l4xx_hal_msp.c` from the build , delete other files except `main.h` in the `driver/CubeMX_Config/inc` directory, as shown in the following figure:
 ![](figures/QBoot_sample_t04.jpg)
 
-#### 2.1.5 添加Fal组件并保存
+#### 2.1.5 Add Fal component and save
 ![](figures/QBoot_sample_t05.jpg)
 
-#### 2.1.6 在工程`driver`下创建文件夹`ports`
+#### 2.1.6 Create a folder `ports` under the project `driver`
 ![](figures/QBoot_sample_t06.jpg)
 
-#### 2.1.7 添加`fal_cfg.h`到文件夹`ports`，代码如下：
+#### 2.1.7 Add `fal_cfg.h` to the folder `ports`, the code is as follows:
 ```
 #ifndef _FAL_CFG_H_
 #define _FAL_CFG_H_
@@ -118,37 +120,37 @@ INIT_COMPONENT_EXPORT(fal_init);
 
 #endif
 ```
-#### 2.1.9 打开构建配置，修改`Optimization`页的`Optimization level`项配置为`Optimize size（-Os）`，向编译配置的`includes`中加入目录`drivers/CubeMX_Config/Inc`和`drivers/ports`
+#### 2.1.9 Open the build configuration, modify the `Optimization level` item on the `Optimization` page and configure it to `Optimize size (-Os)`, and add the directory `drivers/CubeMX_Config/Inc` to the `includes` of the compilation configuration and `drivers/ports`
 ![](figures/QBoot_sample_t07.jpg)
 
-#### 2.1.10 刷新、保存和编译工程，如无错误，则创建基础工程完成。
+#### 2.1.10 Refresh, save and compile the project, if there is no error, the basic project is created.
 
-### 2.2 添加和配置QBoot组件
+### 2.2 Add and configure QBoot components
 
-#### 2.2.1 添加QBoot组件，在软件包中心界面选系统，在QBoot组件项点添加，最后关闭软件包中心
+#### 2.2.1 Add the QBoot component, select the system in the package center interface, add it in the QBoot component item, and finally close the package center
 ![](figures/QBoot_sample_t08.jpg)
 
-#### 2.2.2 配置QBoot组件，在`RT-Thread Settings`界面，双点qboot组件，进入选项配置界面
+#### 2.2.2 Configure the QBoot component, in the `RT-Thread Settings` interface, double-click the qboot component, enter the option configuration interface
 ![](figures/QBoot_sample_t09.jpg)
 
-##### 本示例使用了组件的全部功能，修改了`running status led pin`、`resume factory key pin`、`the level after key is pressed`三个配置项，其它使用默认配置。你可以依据需要对其它配置项进行修改。配置完成后保存工程，完成组件更新。
+##### This example uses all the functions of the component, and modifies the three configuration items `running status led pin`, `resume factory key pin`, `the level after key is pressed`, and the others use the default configuration. You can modify other configuration items as needed. After the configuration is complete, save the project to complete the component update.
 ![](figures/QBoot_sample_t10.jpg)
 
-##### 编译工程，代码flash使用92.97k，ram使用14.72，满足设计需求
+##### Compile the project, the code flash uses 92.97k, and the ram uses 14.72 to meet the design requirements
 ![](figures/QBoot_sample_t11.jpg)
 
-##### 注：在使用gzip情况下，zlib组件的版本v1.0.0对flash使用较多ram较少，而版本laster则对flash使用较少，ram使用较多，请根据不同需要选择使用合适的版本。
+##### Note: In the case of using gzip, the version v1.0.0 of the zlib component uses more flash and less ram, while version last uses less flash and more ram, please choose to use according to different needs suitable version.
 
-# >_< 恭喜！你的bootloader制作完成了！
+# >_< Congratulations! Your bootloader is done!
 
-## 3. 帮助连接：
-- 不同需求，须裁剪QBoot功能模块，请参考[qboot各项配置资源占用情况说明](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E5%90%84%E9%A1%B9%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5%E8%AF%B4%E6%98%8E.md)
-- 运行指示灯闪烁状态描述，详见[运行指示灯状态说明](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E7%8A%B6%E6%80%81%E6%8C%87%E7%A4%BA%E7%81%AF%E8%AF%B4%E6%98%8E.md)
-- 升级包打包工具[下载地址](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/tools/QBootPackager_V1.00.zip)
-- shell命令行QBoot的相关命令描述，详见[QBoot命令详述](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%BF%B0.md)
+## 3. Help link:
+- QBoot function modules need to be tailored for different requirements, please refer to [Resource Occupation of qboot Configurations](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E5%90 %84%E9%A1%B9%E9%85%8D%E7%BD%AE%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85 %E5%86%B5%E8%AF%B4%E6%98%8E.md)
+- For the description of the flashing status of the running indicator, see [Operation Indicator Status Description](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E7%8A%B6%E6% 80%81%E6%8C%87%E7%A4%BA%E7%81%AF%E8%AF%B4%E6%98%8E.md)
+- Upgrade package packaging tool [download link](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/tools/QBootPackager_V1.00.zip)
+- For the description of the related commands of the shell command line QBoot, see [QBoot Command Details](https://gitee.com/qiyongzhong0/rt-thread-qboot/blob/master/doc/QBoot%E5%91%BD%E4 %BB%A4%E8%AF%A6%E8%BF%B0.md)
 
-## 4. 联系方式
+## 4. Contact Information
 
-- 维护：qiyongzhong
-- 主页：https://gitee.com/qiyongzhong0/rt-thread-qboot
-- 邮箱：917768104@qq.com
+- Maintenance: qiyongzhong
+- Homepage: https://gitee.com/qiyongzhong0/rt-thread-qboot
+- Email: 917768104@qq.com

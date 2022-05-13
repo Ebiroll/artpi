@@ -1,145 +1,137 @@
 # FAL API
 
-## 查找 Flash 设备 
+## Find flash devices
 
-```C
+````C
 const struct fal_flash_dev *fal_flash_device_find(const char *name)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| name   | Flash 设备名称 |
-| return | 如果查找成功，将返回 Flash 设备对象，查找失败返回 NULL    |
+| name | Flash device name |
+| return | If the search is successful, the flash device object will be returned, and if the search fails, it will return NULL |
 
-## 查找 Flash 分区
-
+## Find flash partition
 ```C
 const struct fal_partition *fal_partition_find(const char *name)
 ```
-
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| name   | Flash 分区名称 |
-| return | 如果查找成功，将返回 Flash 分区对象，查找失败返回 NULL    |
+| name | Flash partition name |
+| return | If the search is successful, the flash partition object will be returned, and if the search fails, it will return NULL |
 
-## 获取分区表
+## Get the partition table
 
-```C
+````C
 const struct fal_partition *fal_get_partition_table(size_t *len)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| len    | 分区表的长度 |
-| return | 分区表   |
+| len | Length of partition table |
+| return | partition table |
 
-## 临时设置分区表
+## Temporarily set the partition table
 
-FAL 初始化时会自动装载默认分区表。使用该设置将临时修改分区表，重启后会 **丢失** 该设置
+The default partition table is automatically mounted when FAL is initialized. Using this setting will temporarily modify the partition table and will **lost** this setting after restarting
 
-```C
+````C
 void fal_set_partition_table_temp(struct fal_partition *table, size_t len)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| table  | 分区表 |
-| len    | 分区表的长度 |
+| table | partition table |
+| len | Length of partition table |
 
-## 从分区读取数据
-
-```C
+## read data from partition
+````C
 int fal_partition_read(const struct fal_partition *part, uint32_t addr, uint8_t *buf, size_t size)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| part   | 分区对象 |
-| addr   | 相对分区的偏移地址 |
-| buf    | 存放待读取数据的缓冲区 |
-| size   | 待读取数据的大小 |
-| return | 返回实际读取的数据大小   |
+| part | Partition object |
+| addr | Offset address relative to the partition |
+| buf | The buffer to store the data to be read |
+| size | The size of the data to be read |
+| return | Returns the actual data size read |
 
-## 往分区写入数据
+## write data to the partition
 
-```C
+````C
 int fal_partition_write(const struct fal_partition *part, uint32_t addr, const uint8_t *buf, size_t size)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| part   | 分区对象 |
-| addr   | 相对分区的偏移地址 |
-| buf    | 存放待写入数据的缓冲区 |
-| size   | 待写入数据的大小 |
-| return | 返回实际写入的数据大小   |
+| part | Partition object |
+| addr | Offset address relative to the partition |
+| buf | The buffer to store the data to be written |
+| size | The size of the data to be written |
+| return | Returns the actual data size written |
 
-## 擦除分区数据
+## Erase partition data
 
-```C
+````C
 int fal_partition_erase(const struct fal_partition *part, uint32_t addr, size_t size)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| part   | 分区对象 |
-| addr   | 相对分区的偏移地址 |
-| size   | 擦除区域的大小 |
-| return | 返回实际擦除的区域大小   |
+| part | Partition object |
+| addr | Offset address relative to the partition |
+| size | The size of the erased area |
+| return | Returns the size of the area actually erased |
 
-##  擦除整个分区数据
-
-```C
+## Erase entire partition data```C
 int fal_partition_erase_all(const struct fal_partition *part)
-```
+````
 
-| 参数    | 描述                      |
+| Parameters | Description |
 | :----- | :----------------------- |
-| part   | 分区对象 |
-| return | 返回实际擦除的区域大小   |
+| part | Partition object |
+| return | Returns the size of the area actually erased |
 
-## 打印分区表
+## print partition table
 
-```c
+````c
 void fal_show_part_table(void)
-```
+````
 
-## 创建块设备
+## create block device
 
-该函数可以根据指定的分区名称，创建对应的块设备，以便于在指定的分区上挂载文件系统
+This function can create a corresponding block device according to the specified partition name, so as to mount the file system on the specified partition
 
-```C
+````C
 struct rt_device *fal_blk_device_create(const char *parition_name)
-```
+````
 
-| 参数           | 描述                      |
-| :-----        | :-----------------------  |
-| parition_name | 分区名称 |
-| return        | 创建成功，则返回对应的块设备，失败返回空   |
+| Parameters | Description |
+| :----- | :----------------------- |
+| partition_name | partition name |
+| return | If the creation is successful, it will return the corresponding block device, if it fails, it will return empty |
 
-## 创建 MTD Nor Flash 设备
+## Create MTD Nor Flash device
 
-该函数可以根据指定的分区名称，创建对应的 MTD Nor Flash 设备，以便于在指定的分区上挂载文件系统
-
+This function can create a corresponding MTD Nor Flash device according to the specified partition name, so as to mount the file system on the specified partition
 ```C
 struct rt_device *fal_mtd_nor_device_create(const char *parition_name)
 ```
+| Parameters | Description |
+| :------------ | :------------------------------------------------ ------------------ |
+| partition_name | partition name |
+| return | If the creation is successful, it will return the corresponding MTD Nor Flash device, if it fails, it will return empty |
 
-| 参数          | 描述                                                  |
-| :------------ | :---------------------------------------------------- |
-| parition_name | 分区名称                                              |
-| return        | 创建成功，则返回对应的 MTD Nor Flash 设备，失败返回空 |
+## create character device
 
-## 创建字符设备
+This function can create a corresponding character device according to the specified partition name, so that the partition can be operated through the deivice interface or the devfs interface. After POSIX is enabled, the partition can also be operated through the oepn/read/write functions.
 
-该函数可以根据指定的分区名称，创建对应的字符设备，以便于通过 deivice 接口或 devfs 接口操作分区，开启了 POSIX 后，还可以通过 oepn/read/write 函数操作分区。
-
-```C
+````C
 struct rt_device *fal_char_device_create(const char *parition_name)
-```
+````
 
-| 参数          | 描述                                       |
-| :------------ | :----------------------------------------- |
-| parition_name | 分区名称                                   |
-| return        | 创建成功，则返回对应的字符设备，失败返回空 |
-
+| Parameters | Description |
+| :------------ | :------------------------------------------------ ------- |
+| partition_name | partition name |
+| return | If the creation is successful, it will return the corresponding character device, if it fails, it will return empty |
