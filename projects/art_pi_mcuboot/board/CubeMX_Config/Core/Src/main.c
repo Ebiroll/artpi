@@ -20,8 +20,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "w25qxx.h"
 
 /* USER CODE END Includes */
 
@@ -61,6 +63,48 @@ static void MX_QUADSPI_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
+/* defined the LED0 pin: PB1 */
+#define LED0_PIN    GET_PIN(I, 8)
+
+#define VECT_TAB_OFFSET      0x00000000UL
+#define APPLICATION_ADDRESS  (uint32_t)0x90000000
+
+typedef void (*pFunction)(void);
+pFunction JumpToApplication;
+struct boot_rsp g_mcuboot_rsp;
+
+struct arm_vector_table {
+    uint32_t msp;
+    uint32_t reset;
+};
+
+/**
+  * @brief 启动 image
+  * @param struct boot_rsp * rsp: 
+  * retval N/A.
+  */
+static void do_boot(struct boot_rsp * rsp)
+{
+    struct arm_vector_table *vt;
+
+    //LOG_I("imgae_off=%x flashid=%d", rsp->br_image_off, rsp->br_flash_dev_id);
+    //LOG_I("raw_imgae_off=%x", (rsp->br_image_off + rsp->br_hdr->ih_hdr_size));
+
+    W25Q_Memory_Mapped_Enable();
+    vt = (struct arm_vector_table *)(rsp->br_image_off + rsp->br_hdr->ih_hdr_size);
+    SysTick->CTRL = 0;
+
+    SCB->VTOR = (uint32_t)vt;
+    __set_MSP(*(__IO uint32_t *)vt->msp);
+    ((void (*)(void))vt->reset)();
+
+    while(1)
+    {
+        // rt_thread_mdelay(500);
+    }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -94,6 +138,11 @@ int main(void)
   MX_UART4_Init();
   MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
+
+  // Map flash
+  W25QXX_ExitQPIMode();
+  W25QXX_Reset();
+
 
   /* USER CODE END 2 */
 
