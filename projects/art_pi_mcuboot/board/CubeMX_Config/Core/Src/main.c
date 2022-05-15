@@ -30,6 +30,38 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+
+struct image_version {
+    uint8_t iv_major;
+    uint8_t iv_minor;
+    uint16_t iv_revision;
+    uint32_t iv_build_num;
+};
+
+/** Image header.  All fields are in little endian byte order. */
+struct image_header {
+    uint32_t ih_magic;
+    uint32_t ih_load_addr;
+    uint16_t ih_hdr_size;           /* Size of image header (bytes). */
+    uint16_t ih_protect_tlv_size;   /* Size of protected TLV area (bytes). */
+    uint32_t ih_img_size;           /* Does not include header. */
+    uint32_t ih_flags;              /* IMAGE_F_[...]. */
+    struct image_version ih_ver;
+    uint32_t _pad1;
+};
+
+struct boot_rsp {
+    /** A pointer to the header of the image to be executed. */
+    const struct image_header *br_hdr;
+
+    /**
+     * The flash offset of the image to execute.  Indicates the position of
+     * the image header within its flash device.
+     */
+    uint8_t br_flash_dev_id;
+    uint32_t br_image_off;
+};
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -43,7 +75,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-QSPI_HandleTypeDef hqspi;
+extern QSPI_HandleTypeDef hqspi;
 
 UART_HandleTypeDef huart4;
 
@@ -55,7 +87,7 @@ UART_HandleTypeDef huart4;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
-static void MX_QUADSPI_Init(void);
+//static void MX_QUADSPI_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,6 +139,10 @@ static void do_boot(struct boot_rsp * rsp)
 
 /* USER CODE END 0 */
 
+struct image_header hdr;
+
+struct boot_rsp dummy_rsp;
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -143,7 +179,11 @@ int main(void)
   W25QXX_ExitQPIMode();
   W25QXX_Reset();
 
+  hdr.ih_hdr_size=0;
+  dummy_rsp.br_image_off = APPLICATION_ADDRESS;
+  dummy_rsp.br_hdr=&hdr;
 
+  do_boot(&dummy_rsp);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -220,7 +260,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_QUADSPI_Init(void)
+static void MX_GEN_QUADSPI_Init(void)
 {
 
   /* USER CODE BEGIN QUADSPI_Init 0 */
