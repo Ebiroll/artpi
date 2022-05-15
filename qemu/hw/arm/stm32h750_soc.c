@@ -311,8 +311,21 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
 // Stack start     0x24044440
 //                 0x24000938
 
+    memory_region_init_ram(&s->DTC_RAM, OBJECT(dev_soc), "STM32H750.DTC_RAM",
+                            0x20000, &err);
+
+    //                      invalid             0x24000938
+    // From qemu bootloader
+    memory_region_add_subregion(system_memory, 0x20000000, &s->DTC_RAM);
+
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
+
+
     memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H750.RAM_D1",
-                            RAM_D1_SIZE, &err);
+                            0x80000, &err);
 
     //                      invalid             0x24000938
     // From qemu bootloader
@@ -323,7 +336,36 @@ static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
         return;
     }
 
+    memory_region_init_ram(&s->RAM_D2, OBJECT(dev_soc), "STM32H750.RAM_D2",
+                            0x93000, &err);
+
+    // From qemu bootloader
+    memory_region_add_subregion(system_memory, 0x30000000, &s->RAM_D2);
+
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
+
+    memory_region_init_ram(&s->RAM_D3, OBJECT(dev_soc), "STM32H750.RAM_D3",
+                            0x10000, &err);
+
+    // From qemu bootloader
+    memory_region_add_subregion(system_memory, 0x38000000, &s->RAM_D3);
+
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
+
+
 /*
+DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
+RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 512K
+RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 288K
+RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K
+ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
+
  DTCMRAM:         128 KB 
  RAM_D1:          512 KB 
  RAM_D2:          288 KB 

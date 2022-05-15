@@ -104,7 +104,10 @@ struct STM32H750State {
     MemoryRegion spi_flash;
 
     MemoryRegion dram;
+    MemoryRegion  DTC_RAM;
     MemoryRegion  RAM_D1;
+    MemoryRegion  RAM_D2;
+    MemoryRegion  RAM_D3;
 
     STM32H750PowerMgtState pwr;
 
