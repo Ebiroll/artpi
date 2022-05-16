@@ -29,15 +29,26 @@
 #include "hw/ssi/ssi.h"
 #include "qom/object.h"
 
-#define STM_SPI_CR1     0x00
-#define STM_SPI_CR2     0x04
-#define STM_SPI_SR      0x08
-#define STM_SPI_DR      0x0C
-#define STM_SPI_CRCPR   0x10
-#define STM_SPI_RXCRCR  0x14
-#define STM_SPI_TXCRCR  0x18
-#define STM_SPI_I2SCFGR 0x1C
-#define STM_SPI_I2SPR   0x20
+#define STM32_SPI_CR1     0x00
+#define STM32_SPI_CR2     0x04
+#define STM32_SPI_CFG1    0x08
+#define STM32_SPI_CFG2    0x0c
+#define STM32_SPI_IER     0x10
+#define STM32_SPI_IFCR    0x10
+
+#define STM32_SPI_SR      0x14
+#define STM32_SPI_TXDR    0x20
+#define STM32_SPI_RXDR    0x30
+
+
+//#define STM_SPI_DR      0x0C
+//#define STM_SPI_CRCPR   0x10
+#define STM32_SPI_TXCRCR  0x44
+#define STM32_SPI_RXCRCR  0x48
+#define STM32_SPI_CFGR    0x50
+
+//#define STM_SPI_I2SCFGR 0x1C
+//#define STM_SPI_I2SPR   0x20
 
 #define STM_SPI_CR1_SPE  (1 << 6)
 #define STM_SPI_CR1_MSTR (1 << 2)
@@ -56,6 +67,11 @@ struct STM32QSPIState {
 
     uint32_t spi_cr1;
     uint32_t spi_cr2;
+
+    uint32_t spi_cfg1;
+    uint32_t spi_cfg2;
+
+
     uint32_t spi_sr;
     uint32_t spi_dr;
     uint32_t spi_crcpr;

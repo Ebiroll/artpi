@@ -183,6 +183,16 @@ int main(void)
   dummy_rsp.br_image_off = APPLICATION_ADDRESS;
   dummy_rsp.br_hdr=&hdr;
 
+  uint8_t Test[] = "Disable ICache !!!\r\n"; //Data to send
+  HAL_UART_Transmit(&huart4,Test,sizeof(Test),21);// Sending in normal mode
+
+  SCB_DisableICache();
+  SCB_DisableDCache();
+
+  uint8_t BootText[] = "do_boot !!!\r\n"; //Data to send
+  HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
+
+
   do_boot(&dummy_rsp);
   /* USER CODE END 2 */
 
