@@ -88,8 +88,9 @@ global_data is a structure used by u-boot.
 
 When using qemu we can load u-boot and kernel
 
-(gdb) restore u-boot-org binary 0x90000000 0 275089
+(gdb) restore org-u-boot binary 0x90000000 0 275089
 (gdb) restore art.itb binary 0x90080000 0 4822940
+(gdb) restore u-boot-dtb.bin binary 0x90040044 0
 
 (gdb) p/x *0x90000004
 (gdb) s	$pc=0x900003fd
