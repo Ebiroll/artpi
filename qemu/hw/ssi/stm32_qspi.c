@@ -84,7 +84,10 @@ static uint64_t stm32_qspi_read(void *opaque, hwaddr addr,
     case STM32_SPI_CFG1:
         qemu_log_mask(LOG_UNIMP, "%s: CFG1\n",
                       __func__);
+                      // TX complete
+        s->spi_cfg1|=STM_SPI_CR1_TXC;
         return s->spi_cfg1;
+
     case STM32_SPI_CFG2:
         qemu_log_mask(LOG_UNIMP, "%s: CFG2\n",
                       __func__);

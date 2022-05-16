@@ -18,18 +18,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32h7xx_hal.h"
-
-#ifdef __cplusplus
-}
-#endif
-
-
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -44,6 +32,11 @@ extern "C" {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define UBOOT_ADDRESS   (uint32_t)0x90000000
+#define KERNEL_ADDRESS  (uint32_t)0x90080000
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -53,7 +46,7 @@ extern "C" {
 
 /* Private variables ---------------------------------------------------------*/
 
-extern QSPI_HandleTypeDef hqspi;
+QSPI_HandleTypeDef hqspi;
 
 SPI_HandleTypeDef hspi1;
 
@@ -78,10 +71,55 @@ static void MX_SPI1_Init(void);
 
 /* USER CODE END 0 */
 
+typedef void (*pFunction)(void);
+pFunction JumpToApplication;
+
+
 /**
   * @brief  The application entry point.
   * @retval int
   */
+static void switch_back_to_msp()
+{
+    __asm volatile (
+        "PUSH {r0, r1, lr} \n"
+        "LDR r0, =#0x90000000 \n"
+        "MSR msp, r0 \n"
+        "MRS r0, control \n"
+        "BICS r0, r0, #0x6 \n"
+        "MSR control, r0 \n"
+        "DSB \n"
+        "ISB \n"
+    );
+}
+
+/* jump to u-boot or other fw installed on qspi flash */
+void jump(uint32_t addr)
+{
+    W25QXX_ExitQPIMode();
+    W25QXX_Reset();
+    // QEMU init problem!!
+    //W25QXX_Init();
+    W25Q_Memory_Mapped_Enable();
+
+    HAL_NVIC_DisableIRQ(UART4_IRQn);
+    rt_hw_interrupt_disable();
+    HAL_MPU_Disable();
+    SCB_DisableICache();
+    SCB_DisableDCache();
+    SysTick->CTRL = 0;
+    switch_back_to_msp();
+    __set_MSP(*(__IO uint32_t *)addr);
+    JumpToApplication = (pFunction)(*(__IO uint32_t *)(addr + 4));
+    SCB->VTOR = addr;
+
+    //rt_kprintf("before jump, %x msp %x psp %x ctl %x\r\n",
+    //		    addr, __get_MSP(), __get_PSP(),
+    // 		    __get_CONTROL());
+    JumpToApplication();
+}
+
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -108,13 +146,17 @@ int main(void)
   MX_GPIO_Init();
   MX_UART4_Init();
   MX_QUADSPI_Init();
-  MX_SPI1_Init();
+  // Not implemented in QEMU!!! Fix?
+  //MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  jump(UBOOT_ADDRESS);
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -132,19 +174,21 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Supply configuration update enable
   */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+
   /** Configure the main internal regulator output voltage
   */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+
   /** Macro to configure the PLL clock source
   */
   __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -164,6 +208,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -178,23 +223,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_SPI1
-                              |RCC_PERIPHCLK_QSPI;
-  PeriphClkInitStruct.PLL2.PLL2M = 2;
-  PeriphClkInitStruct.PLL2.PLL2N = 64;
-  PeriphClkInitStruct.PLL2.PLL2P = 4;
-  PeriphClkInitStruct.PLL2.PLL2Q = 2;
-  PeriphClkInitStruct.PLL2.PLL2R = 4;
-  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
-  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
-  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
-  PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
-  PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
-  PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
@@ -381,5 +409,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

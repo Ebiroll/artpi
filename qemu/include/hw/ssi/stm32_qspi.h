@@ -53,6 +53,9 @@
 #define STM_SPI_CR1_SPE  (1 << 6)
 #define STM_SPI_CR1_MSTR (1 << 2)
 
+#define STM_SPI_CR1_TXC (1 << 1)
+
+
 #define STM_SPI_SR_RXNE   1
 
 #define TYPE_STM32_QSPI "stm32-qspi"

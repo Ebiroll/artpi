@@ -14,8 +14,8 @@ TARGET ?= bootloader
 #LD      = $(GCC_ROOT)/bin/arm-none-eabi-ld
 #OBJCOPY  = $(GCC_ROOT)/bin/arm-none-eabi-objcopy
 #OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
-
-GCC_ROOT = /home/olof/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi
+# /home/olof/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi
+GCC_ROOT = /usr
 CC       = $(GCC_ROOT)/bin/arm-none-eabi-gcc
 CXX      = $(GCC_ROOT)/bin/arm-none-eabi-g++
 LD      = $(GCC_ROOT)/bin/arm-none-eabi-ld
@@ -27,6 +27,7 @@ OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
 PLATFORM = RAK811BreakBoard
 DEVICE   = STM32H750xx
 # STM32H750XBHx
+# STM32H750XBH6
 MCU      = stm32
 LINKER_DEF = board/linker_scripts/STM32H750XBHx/link.lds
 #rt-thread/bsp/stm32/stm32h750-artpi-h750/board/linker_scripts/link.lds
@@ -159,13 +160,13 @@ endif
 # -x assembler-with-cpp -Wa,-mimplicit-it=thumb 
 #  should be,  -mfloat-abi=hard
 
-DEVICE = -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -ffunction-sections -fdata-sections -fno-builtin-memset
-# -mfpu=fpv5-d16 
+DEVICE = -mcpu=cortex-m7  -mfpu=fpv5-d16 -mthumb -mfloat-abi=hard -ffunction-sections -fdata-sections -fno-builtin-memset
+
 # call cc-option, -mhard-float
 # -cref,-u,Reset_Handler
 
 #for the C
-CFLAGS +=  $(DEVICE)-g2 -Wall -Os -c -nostdlib -nostartfiles -ffreestanding 
+CFLAGS +=  $(DEVICE)-g2 -Wall -Os -c -g -gdwarf-2 -nostdlib -nostartfiles -ffreestanding 
 CFLAGS += -MMD -MP -MF"${@:.o=.d}" -MT"$@" -o "$@"
 CFLAGS += -mhard-float
 #  -eentry -fno-builtin-printf
@@ -175,7 +176,13 @@ ASFLAGS +=  $(DEVICE) -g  -x assembler-with-cpp -Wa,-mimplicit-it=thumb
 # -x assembler-w -c 
 
 #for the linker
-CXXFLAGS := -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -ffunction-sections -fdata-sections -Os -g2 -g -nostdlib -nostartfiles -ffreestanding 
+CXXFLAGS := -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -ffunction-sections -fdata-sections -Os -g2 -g -gdwarf-2 -nostartfiles -ffreestanding 
+# -nostdlib
+
+ifeq ($(DEBUG), 1)
+CFLAGS += -g -gdwarf-2
+endif
+
 # -O0
 # -mfpu=fpv5-d16 
 # LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T board/linker_scripts/link.lds'
