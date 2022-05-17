@@ -59,6 +59,8 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
                 // RCC_FLAG_HSERDY
         break;
 
+            case 0x10:
+            res= s->cfg2;
           /*
              <name>SVOS</name>
               <description>System Stop mode voltage scaling
@@ -70,6 +72,14 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
               <bitWidth>2</bitWidth>
               */
           break;
+           case 0x28:
+              res = s->rpcsr;
+           break;
+          case 0xe8:
+              res = s->hsem_lock;
+           break;
+
+
           case 0x00000418:
           /*
               voltage levels ready bit for currently
@@ -104,6 +114,28 @@ static void stm32h7xx_powermgt_write(void *opaque, hwaddr offset,
                 "stm32h7xx_powermgt_write: CFG\n");
         s->cfg = value;
         break;
+        case 0x10:
+           s->cfg2=value;
+        break;
+
+        /* 0x58024400
+        // HSEM Read lock register
+        tm32h7xx_powermgt_read: Unknown offset 0x000000e8
+        stm32h7xx_powermgt_write: Unknown offset 0x000000e8
+
+
+        RCC PLLs Clock Source Selection
+        <resetValue>0x02020200</resetValue>
+*/
+    case 0xe8:
+        s->hsem_lock = value;
+        break;
+
+
+    case 0x28:
+        s->rpcsr = value;
+        break;
+
     //case R_WDOG:
     //    qemu_log_mask(LOG_UNIMP,
     //                  "stm32h7xx_powermgt_write: WDOG\n");
@@ -150,6 +182,8 @@ static void stm32h7xx_powermgt_reset(DeviceState *dev)
     STM32H750PowerMgtState *s = STM32H750_POWERMGT(dev);
 
     s->cfg = 0x00000000;
+    s->rpcsr = 0x02020200;
+    s->hsem_lock=0;
 }
 
 static void stm32h7xx_powermgt_class_init(ObjectClass *klass, void *data)
@@ -387,7 +421,7 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 //spi_flash
 
     // spi_flash, olas...
-    memory_region_init_ram(&s->spi_flash, OBJECT(dev_soc), "STM32H750.spiflash", SPI_FLASH__SIZE,
+    memory_region_init_ram(&s->spi_flash, OBJECT(dev_soc), "STM32H750.spiflash", 4 * SPI_FLASH__SIZE,
                            &err);
     if (err != NULL) {
         error_propagate(errp, err);
@@ -564,6 +598,7 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("WWDG",0x50003000,0x400);
     create_unimplemented_device("AXI",0x51000000,0x100000);
     create_unimplemented_device("DMA2D_MDMA",0x52000000,0x1400);
+                                       //   0x52005000
     create_unimplemented_device("JPEG_Flash",0x52002000,0x1400);
     create_unimplemented_device("FMC",0x52004000,0x400);
     //create_unimplemented_device("QUADSPI",0x52005000,0x400);

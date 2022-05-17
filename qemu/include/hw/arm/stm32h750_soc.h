@@ -72,6 +72,12 @@ struct STM32H750PowerMgtState {
     MemoryRegion iomem;
 
     uint32_t cfg;
+    uint32_t cfg2;
+
+    uint32_t rpcsr;
+    uint32_t hsem_lock;
+
+
 };
 
 

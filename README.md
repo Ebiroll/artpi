@@ -86,24 +86,463 @@ global_data is a structure used by u-boot.
    malloc_ptr = 0, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0, tbu = 0, tbl = 0, lastinc = 0,
     timer_reset_value = 0, tlb_addr = 0, tlb_size = 0}, dmtag_list = {next = 0x0, prev = 0x0}}
 
+ p/x *gd
+$9 = {bd = 0x0, flags = 0x0, baudrate = 0x1e8480, cpu_clk = 0x0, bus_clk = 0x0, pci_clk = 0x0, mem_clk = 0x0, have_console = 0x0, env_addr = 0x9002a004, env_valid = 0x1,
+  env_has_init = 0x1000, env_load_prio = 0x0, ram_base = 0x0, ram_top = 0x0, relocaddr = 0x0, ram_size = 0x0, mon_len = 0x39d68, irq_sp = 0x0, start_addr_sp = 0x0, reloc_off = 0x0,
+  new_gd = 0x0, dm_root = 0x2403f118, dm_root_f = 0x0, uclass_root_s = {next = 0x2403f110, prev = 0x2403f110}, uclass_root = 0x2403f07c, timer = 0x0, fdt_blob = 0x9003ea7c, 
+  new_fdt = 0x0, fdt_size = 0x0, fdt_src = 0x0, jt = 0x0, env_buf = {0x32, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0 <repeats 25 times>}, timebase_h = 0x0, timebase_l = 0x0,
+  malloc_base = 0x2403f100, malloc_limit = 0xf00, malloc_ptr = 0x6c, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0x0, tbu = 0x0, tbl = 0x0, lastinc = 0x0, timer_reset_value = 0x0,
+    tlb_addr = 0x0, tlb_size = 0x0}, dmtag_list = {next = 0x2403f0f8, prev = 0x2403f0f8}}
+
+
+
 When using qemu we can load u-boot and kernel
 
-(gdb) restore org-u-boot binary 0x90000000 0 275089
-(gdb) restore art.itb binary 0x90080000 0 4822940
-(gdb) restore u-boot-dtb.bin binary 0x90040044 0
+   (gdb) restore org-u-boot binary 0x90000000 0 275089
+   (gdb) restore u-boot.bin binary 0x90000000 0 
+   (gdb) restore art.itb binary 0x90080000 0 
+   (gdb) restore u-boot-dtb.bin binary 0x90040044 0
 
-(gdb) p/x *0x90000004
-(gdb) s	$pc=0x900003fd
+   > If you compiled u-boot manually
+   restore u-boot.bin binary 0x90000000 0
+   restore art.itb binary 0x90080000 0
+   restore u-boot-dtb.bin binary 0x90040044 0
+
+
+   (gdb) p/x *0x90000004
+   (gdb) s	$pc=0x900003fd
+
+
+     p init_sequence_f
+     $1 =  <setup_mon_len>
+      <fdtdec_setup>, 
+      <initf_malloc>, 
+      <log_init>,  
+      <initf_bootstage>, 
+      <event_init>, 
+      <setup_spl_handoff>,
+      <arch_cpu_init>, 
+      <mach_cpu_init>, 
+      <initf_dm>,
+     <board_early_init_f>, 
+      <timer_init>,
+       <env_init>, 
+      <init_baud_rate>,
+
+      /* Runs up to here */
+      <serial_init>,       serial_find_console_or_panic
+
+       {driver = 0x90037c5c <_u_boot_list_2_driver_2_serial_stm32>, name = 0x90040604 "serial@40004c00", plat_ = 0x2403fa98, parent_plat_ = 0x0, uclass_plat_ = 0x0, driver_data = 2416144538,    parent = 0x2403f118, priv_ = 0x0, uclass = 0x2403fa2c, uclass_priv_ = 0x0, parent_priv_ = 0x0, uclass_node = {next = 0x2403fa34, prev = 0x2403fa34}, child_head = {next = 0x2403fa78, prev = 0x2403fa78},
+  sibling_node = {next = 0x2403f14c, prev = 0x2403f9ec}, flags_ = 66, seq_ = 0, node_ = {np = 0x80c, of_offset = 2060}, dma_offset = 0}
+
+       pinctrl_select_state
+
+    configure_clocks()
+      drivers/clk/clk_stm32h7.c
+
+     /* set HPRE (/2) DI clk --> 125MHz */                                                                                          
+     clrsetbits_le32(&regs->d1cfgr RCC_D1CFGR_HPRE_MASK,                                                                                                                         
+                                RCC_D1CFGR_HPRE_DIV2)                                                                                                                                      
+                                                                                                                                                                                           
+         /*  select PLL1 as system clock source (sys_ck)*/                                                                                                                               
+         clrsetbits_le32(&regs->cfgr, RCC_CFGR_SW_MASK, RCC_CFGR_SW_PLL1);                                                                
+      while ((readl(&regs->cfgr) & RCC_CFGR_SW_MASK) != RCC_CFGR_SW_PLL1)
+                        ;                                                                                                                                                                  
+
+      s32h7xx_powermgt_read: Unknown offset 0x00000010
+      stm32h7xx_powermgt_read: Unknown offset 0x00000010
+      stm32h7xx_powermgt_read: Unknown offset 0x00000010
+      stm32h7xx_powermgt_read: Unknown offset 0x00000010
+
+                                                                                                                                                                                        │
+      /* sdram: use pll1_q as fmc_k clk */
+      clrsetbits_le32(&regs->d1ccipr, RCC_D1CCIPR_FMCSRC_MASK,         FMCSRC_PLL1_Q_CK);                                                                                              
+
+
+
+
+      <console_init_f>,
+      <display_options>, 
+      <display_text_info>, 
+      <checkcpu>, 
+      <show_board_info>,
+      <misc_init_f>,
+      <announce_dram_init>, 
+      <dram_init>,
+      <setup_dest_addr>, 
+      <reserve_round_4k>, 
+      <arch_reserve_mmu>, 
+      <reserve_video>, 
+      <reserve_trace>,
+      <reserve_uboot>, 
+      <reserve_malloc>,
+      <reserve_board>, 
+      <reserve_global_data>, 
+      <reserve_fdt>, 
+      <reserve_bootstage>, 
+      <reserve_bloblist>,
+      <reserve_arch>, 
+      <reserve_stacks>, 
+      <dram_init_banksize>, 
+      <show_dram_config>, 
+      <setup_bdinfo>, 
+      <display_new_sp>, 
+      <reloc_fdt>,
+      <reloc_bootstage>, 
+      <reloc_bloblist>, 
+      <setup_reloc>, 
+       <clear_bss>,
+
+
+    u-boot Init call sequence
+
+      board_init_f():
+         - purpose: set up the machine ready for running board_init_r():
+            i.e. SDRAM and serial UART
+         - global_data is available
+         - stack is in SRAM
+         - BSS is not available, so you cannot use global/static variables,
+            only stack variables and global_data
+
+         Non-SPL-specific notes:
+         - dram_init() is called to set up DRAM. If already done in SPL this
+            can do nothing
+
+         SPL-specific notes:
+         - you can override the entire board_init_f() function with your own
+            version as needed.
+         - preloader_console_init() can be called here in extremis
+         - should set up SDRAM, and anything needed to make the UART work
+         - there is no need to clear BSS, it will be done by crt0.S
+         - for specific scenarios on certain architectures an early BSS *can*
+         be made available (via CONFIG_SPL_EARLY_BSS by moving the clearing
+         of BSS prior to entering board_init_f()) but doing so is discouraged.
+         Instead it is strongly recommended to architect any code changes
+         or additions such to not depend on the availability of BSS during
+         board_init_f() as indicated in other sections of this README to
+         maintain compatibility and consistency across the entire code base.
+         - must return normally from this function (don't call board_init_r()
+            directly)
+
+      Here the BSS is cleared. For SPL, if CONFIG_SPL_STACK_R is defined, then at
+      this point the stack and global_data are relocated to below
+      CONFIG_SPL_STACK_R_ADDR. For non-SPL, U-Boot is relocated to run at the top of
+      memory.
+
+
+    board_init_r():
+      - purpose: main execution, common code
+      - global_data is available
+      - SDRAM is available
+      - BSS is available, all static/global variables can be used
+      - execution eventually continues to main_loop()
+
+      Non-SPL-specific notes:
+      - U-Boot is relocated to the top of memory and is now running from
+         there.
+
+      SPL-specific notes:
+      - stack is optionally in SDRAM, if CONFIG_SPL_STACK_R is defined and
+         CONFIG_SPL_STACK_R_ADDR points into SDRAM
+      - preloader_console_init() can be called here - typically this is
+         done by selecting CONFIG_SPL_BOARD_INIT and then supplying a
+         spl_board_init() function containing this call
+      - loads U-Boot or (in falcon mode) Linux
+
+
+
+setup_mon_len()
+fdtdec_setup () 
+Set breakpoint here to see if OK
+fdt_check_header()
+
+/* Should not be weak! */
+fdtdec_board_setup()
+
+initf_malloc()
+arch_cpu_init()
+
+puts("No serial driver found")
+                                                                                               
+
+b puts()
+
+Breakpoint 2, puts (s=0x2403edbc "pinctrl_stm32 pin-controller@58020000: hwspinlock_get_by_index may have failed (-38)\n") at common/console.c:691
+0x2403ee5c "pinctrl_stm32 pin-controller@58020000: periph->name = serial@40004c00\n") at common/console.c:691
+puts (s=0x2403ec2c "gpio_stm32 gpio@58020000: addr = 0x58020000 bank_name = GPIOA gpio_count = 16 gpio_range = 0xffff\n") at common/console.c:69
+
+
+
+clk_get_rate(&clk)
+
+stm32_get_PLL1_rate()
+"Can't find clk clk-hsi (-19)") at common/console.c:691
+
+stm32h7xx_powermgt_read: Unknown offset 0x000000e8
+stm32h7xx_powermgt_write: Unknown offset 0x000000e8
+stm32h7xx_powermgt_read: Unknown offset 0x00000028
+
+
+                                                                                               
+                                                                                               
+                                                                                                                                                                                                      { 0x90000000, REGION_1, XN_DIS,  PRIV_RW_USR_RW,  SHARED_WRITE_BUFFERED, REGION_256MB }
+           { 0xC0000000, REGION_0, XN_DIS,PRIV_RW_USR_RW,    O_I_WB_RD_WR_ALLOC, REGION_512MB }  
+
+
+{start_addr = 0x90000000, region_no = 0x1, xn = 0x0, ap = 0x3, mr_attr = 0x1, reg_size = 0x1b}
+{start_addr = 0xc0000000, region_no = 0x0, xn = 0x0, ap = 0x3, mr_attr = 0x5, reg_size = 0x1c}
+
+dm_init_and_scan()
+
+
+# Qemu u-boot log 
+
+      U-Boot 2022.04-00992-g9bb99fa958 (May 17 2022 - 08:45:08 +0200)
+
+      Model: RT-Thread STM32H750i-ART-PI board
+      DRAM:  stm32_fmc fmc@52004000: can't find syscon device (-2)
+      stm32_fmc fmc@52004000: no of banks = 1
+      pinctrl_stm32 pin-controller@58020000: periph->name = fmc@52004000
+      gpio_stm32 gpio@58020c00: addr = 0x58020c00 bank_name = GPIOD gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 33
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=33 gate offset=0xe0 bit_index=3 name=gpiod
+      gpio_stm32 gpio@58020c00: clock enabled
+      gpio_stm32 gpio@58021000: addr = 0x58021000 bank_name = GPIOE gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 32
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=32 gate offset=0xe0 bit_index=4 name=gpioe
+      gpio_stm32 gpio@58021000: clock enabled
+      gpio_stm32 gpio@58021400: addr = 0x58021400 bank_name = GPIOF gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 31
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=31 gate offset=0xe0 bit_index=5 name=gpiof
+      gpio_stm32 gpio@58021400: clock enabled
+      gpio_stm32 gpio@58021800: addr = 0x58021800 bank_name = GPIOG gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 30
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=30 gate offset=0xe0 bit_index=6 name=gpiog
+      gpio_stm32 gpio@58021800: clock enabled
+      gpio_stm32 gpio@58021c00: addr = 0x58021c00 bank_name = GPIOH gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 29
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=29 gate offset=0xe0 bit_index=7 name=gpioh
+      gpio_stm32 gpio@58021c00: clock enabled
+      gpio_stm32 gpio@58020800: addr = 0x58020800 bank_name = GPIOC gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 34
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=34 gate offset=0xe0 bit_index=2 name=gpioc
+      gpio_stm32 gpio@58020800: clock enabled
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 64
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=64 gate offset=0xd4 bit_index=12 name=fmc
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 45
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: source = 3 freq = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id=45 gate_offset=0xe8 sysclk=6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: freq after APB1 prescaler = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 45
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=45 gate offset=0xe8 bit_index=3 name=tim5
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: source = 3 freq = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id=45 gate_offset=0xe8 sysclk=6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: freq after APB1 prescaler = 6250000
+      32 MiB
+      stm32-rcc reset-clock-controller@58024400: RCC bind
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020800
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020800
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020c00
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58020c00
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021800
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021800
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021c00
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58021c00
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022000
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022400
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022800
+      pinctrl_stm32 pin-controller@58020000: bind gpio@58022800
+      pinctrl_stm32 pin-controller@58020000: bind i2c1-0
+      pinctrl_stm32 pin-controller@58020000: bind rmii-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc1-b4-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc1-b4-od-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc1-b4-sleep-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc1-dir-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc1-dir-sleep-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc2-b4-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc2-b4-od-0
+      pinctrl_stm32 pin-controller@58020000: bind sdmmc2-b4-sleep-0
+      pinctrl_stm32 pin-controller@58020000: bind spi1-0
+      pinctrl_stm32 pin-controller@58020000: bind uart4-0
+      pinctrl_stm32 pin-controller@58020000: bind usart1-0
+      pinctrl_stm32 pin-controller@58020000: bind usart2-0
+      pinctrl_stm32 pin-controller@58020000: bind usart3-0
+      pinctrl_stm32 pin-controller@58020000: bind usbotg-hs-0
+      pinctrl_stm32 pin-controller@58020000: bind fmc@0
+      pinctrl_stm32 pin-controller@58020000: hwspinlock_get_by_index may have failed (-38)
+      pinctrl_stm32 pin-controller@58020000: periph->name = serial@40004c00
+      gpio_stm32 gpio@58020000: addr = 0x58020000 bank_name = GPIOA gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 36
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=36 gate offset=0xe0 bit_index=0 name=gpioa
+      gpio_stm32 gpio@58020000: clock enabled
+      gpio_stm32 gpio@58022000: addr = 0x58022000 bank_name = GPIOI gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 28
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=28 gate offset=0xe0 bit_index=8 name=gpioi
+      gpio_stm32 gpio@58022000: clock enabled
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 80
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=80 gate offset=0xe8 bit_index=19 name=uart4
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: source = 3 freq = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id=80 gate_offset=0xe8 sysclk=6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: freq after APB1 prescaler = 6250000
+      Core:  28 devices, 13 uclasses, devicetree: separate
+      MMC:   pinctrl_stm32 pin-controller@58020000: periph->name = sdmmc@52007000
+      gpio_stm32 gpio@58020800: addr = 0x58020800 bank_name = GPIOC gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 34
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=34 gate offset=0xe0 bit_index=2 name=gpioc
+      gpio_stm32 gpio@58020800: clock enabled
+      gpio_stm32 gpio@58020c00: addr = 0x58020c00 bank_name = GPIOD gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 33
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=33 gate offset=0xe0 bit_index=3 name=gpiod
+      gpio_stm32 gpio@58020c00: clock enabled
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 62
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=62 gate offset=0xd4 bit_index=16 name=sdmmc1
+      stm32_rcc_reset reset-clock-controller@58024400: reset id = 1008 bank = 124 offset = 16)
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 45
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: source = 3 freq = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id=45 gate_offset=0xe8 sysclk=6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: freq after APB1 prescaler = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 45
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=45 gate offset=0xe8 bit_index=3 name=tim5
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: source = 3 freq = 6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id=45 gate_offset=0xe8 sysclk=6250000
+      stm32h7_rcc_clock reset-clock-controller@58024400: system clock: freq after APB1 prescaler = 6250000
+      stm32_rcc_reset reset-clock-controller@58024400: reset id = 1008 bank = 124 offset = 16)
+      STM32 SD/MMC: 0
+      Loading Environment from nowhere... OK
+      In:    serial@40004c00
+      Out:   serial@40004c00
+      Err:   serial@40004c00
+      Hit SPACE in 3 seconds to stop autoboot.
+      ## Loading kernel from FIT Image at 90080000 ...
+         Using 'conf-1' configuration
+         Trying 'kernel' kernel subimage
+         Description:  Vanilla Linux kernel
+         Type:         Kernel Image
+         Compression:  uncompressed
+         Data Start:   0x900800e8
+         Data Size:    4804648 Bytes = 4.6 MiB
+         Architecture: ARM
+         OS:           Linux
+         Load Address: 0xc0008000
+         Entry Point:  0xc0008000
+         Hash algo:    crc32
+         Hash value:   beeeab64
+         Hash algo:    sha1
+         Hash value:   b04fc82a06a6c386fa493a36cdd9b131f24c3a25
+         Verifying Hash Integrity ... crc32+ sha1+ OK
+      ## Loading fdt from FIT Image at 90080000 ...
+         Using 'conf-1' configuration
+         Trying 'fdt-1' fdt subimage
+         Description:  Flattened Device Tree blob
+         Type:         Flat Device Tree
+         Compression:  uncompressed
+         Data Start:   0x90515238
+         Data Size:    16423 Bytes = 16 KiB
+         Architecture: ARM
+         Hash algo:    crc32
+         Hash value:   7426cdac
+         Hash algo:    sha1
+         Hash value:   865934e6bed5f8e611e6d14f7226c628ab343fa7
+         Verifying Hash Integrity ... crc32+ sha1+ OK
+         Booting using the fdt blob at 0x90515238
+         Loading Kernel Image
+         Loading Device Tree to c17f8000, end c17ff026 ... OK
+
+      Starting kernel ...
+
+Fun ends here
+
+# compared to real hardware boot.
+
+msh \>boot  
+before jump, 90000000 msp 24040000 psp 200031d0 ctl 0  
+
+U-Boot 2021.04-rc3-00160-g3727ffa (Mar 22 2021 - 11:50:15 +0800)  
+  
+Model: RT-Thread STM32H750i-Art-Pi board  
+DRAM:  32 MiB  
+MMC:   STM32 SD/MMC: 0  
+In:    serial@40004c00  
+Out:   serial@40004c00  
+Err:   serial@40004c00  
+Hit SPACE in 3 seconds to stop autoboot.  
+ Loading kernel from FIT Image at 90080000 ...  
+   Using 'conf-1' configuration  
+   Trying 'kernel' kernel subimage  
+     Description:  Vanilla Linux kernel  
+     Type:         Kernel Image  
+     Compression:  uncompressed  
+     Data Start:   0x900800e8  
+     Data Size:    4804648 Bytes = 4.6 MiB  
+     Architecture: ARM  
+     OS:           Linux  
+     Load Address: 0xc0008000  
+     Entry Point:  0xc0008000  
+     Hash algo:    crc32  
+     Hash value:   beeeab64  
+     Hash algo:    sha1  
+     Hash value:   b04fc82a06a6c386fa493a36cdd9b131f24c3a25  
+   Verifying Hash Integrity ... crc32+ sha1+ OK  
+ Loading fdt from FIT Image at 90080000 ...  
+   Using 'conf-1' configuration  
+   Trying 'fdt-1' fdt subimage  
+     Description:  Flattened Device Tree blob  
+     Type:         Flat Device Tree  
+     Compression:  uncompressed  
+     Data Start:   0x90515238  
+     Data Size:    16423 Bytes = 16 KiB  
+     Architecture: ARM  
+     Hash algo:    crc32  
+     Hash value:   7426cdac  
+     Hash algo:    sha1  
+     Hash value:   865934e6bed5f8e611e6d14f7226c628ab343fa7  
+   Verifying Hash Integrity ... crc32+ sha1+ OK  
+   Booting using the fdt blob at 0x90515238  
+   Loading Kernel Image  
+   Loading Device Tree to c17f8000, end c17ff026 ... OK  
+  
+Starting kernel ...  
+  
+[    0.000000] Booting Linux on physical CPU 0x0  
+[    0.000000] Linux version 5.12.0-rc2-28712-gbce82a062e70-dirty (fmin@fmin-OptiPlex-7060) (arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release), 
+
+
+# First qemu boot message
+
+      -Boot 2022.04-00992-g9bb99fa958 (May 17 2022 - 08:45:08 +0200)
+
+      Model: RT-Thread STM32H750i-ART-PI board
+      DRAM:  stm32_fmc fmc@52004000: can't find syscon device (-2)
+      stm32_fmc fmc@52004000: no of banks = 1
+      pinctrl_stm32 pin-controller@58020000: periph->name = fmc@52004000
+      gpio_stm32 gpio@58020c00: addr = 0x58020c00 bank_name = GPIOD gpio_count = 16 gpio_range = 0xffff
+      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 33
+      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=33 gate offset=0xe0 bit_index=3 name=gpiod
+      stm32h7xx_powermgt_read: Unknown offset 0x000000e0
+      stm32h7xx_powermgt_write: Unknown offset 0x000000e0
+      gpio_stm32 gpio@58020c00: clock enabled
+
+
 
 
 
 
 # Devices
 
-8MiB QSPI flash (Boot flash)
-16MiB SPI flash (W25Q64)              ORIGIN =0x90000000,LENGTH =8192k
-32MiB SDRAM
-AP6212 wifi,bt,fm comb
+   8MiB QSPI flash (Boot flash)
+   16MiB SPI flash (W25Q64)              ORIGIN =0x90000000,LENGTH =8192k
+   32MiB SDRAM
+   AP6212 wifi,bt,fm comb
 
 
 https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi
@@ -227,53 +666,52 @@ On an ubuntu LTS system
 
 
       * _main execution sequence is:
-   *
-   * 1. Set up initial environment for calling board_init_f().
-   *    This environment only provides a stack and a place to store
-   *    the GD ('global data') structure, both located in some readily
-   *    available RAM (SRAM, locked cache...). In this context, VARIABLE
-   *    global data, initialized or not (BSS), are UNAVAILABLE; only
-   *    CONSTANT initialized data are available. GD should be zeroed
-   *    before board_init_f() is called.
-   *  Note that register r9 points to gd.
-   *
-   * 2. Call board_init_f(). This function prepares the hardware for
-   *    execution from system RAM (DRAM, DDR...) As system RAM may not
-   *    be available yet, , board_init_f() must use the current GD to
-   *    store any data which must be passed on to later stages. These
-   *    data include the relocation destination, the future stack, and
-   *    the future GD location.
-   *
-   * 3. Set up intermediate environment where the stack and GD are the
-   *    ones allocated by board_init_f() in system RAM, but BSS and
-   *    initialized non-const data are still not available.
-   *
-   * 4a.For U-Boot proper (not SPL), call relocate_code(). This function
-   *    relocates U-Boot from its current location into the relocation
-   *    destination computed by board_init_f().
-   *
-   * 4b.For SPL, board_init_f() just returns (to crt0). There is no
-   *    code relocation in SPL.
-   *
-   * 5. Set up final environment for calling board_init_r(). This
-   *    environment has BSS (initialized to 0), initialized non-const
-   *    data (initialized to their intended value), and stack in system
-   *    RAM (for SPL moving the stack and GD into RAM is optional - see
-   *    CONFIG_SPL_STACK_R). GD has retained values set by board_init_f().
-   *
-   * 6. For U-Boot proper (not SPL), some CPUs have some work left to do
-   *    at this point regarding memory, so call c_runtime_cpu_setup.
-   *
-   * 7. Branch to board_init_r().
-   *
-   * For more information see 'Board Initialisation Flow in README.
-   */
+   
+    1. Set up initial environment for calling board_init_f().
+       This environment only provides a stack and a place to store
+       the GD ('global data') structure, both located in some readily
+       available RAM (SRAM, locked cache...). In this context, VARIABLE
+       global data, initialized or not (BSS), are UNAVAILABLE; only
+       CONSTANT initialized data are available. GD should be zeroed
+       before board_init_f() is called.
+     Note that register r9 points to gd.
+   
+    2. Call board_init_f(). This function prepares the hardware for
+       execution from system RAM (DRAM, DDR...) As system RAM may not
+       be available yet, , board_init_f() must use the current GD to
+       store any data which must be passed on to later stages. These
+       data include the relocation destination, the future stack, and
+       the future GD location.
+   
+    3. Set up intermediate environment where the stack and GD are the
+       ones allocated by board_init_f() in system RAM, but BSS and
+       initialized non-const data are still not available.
+   
+    4a.For U-Boot proper (not SPL), call relocate_code(). This function
+       relocates U-Boot from its current location into the relocation
+       destination computed by board_init_f().
+   
+    4b.For SPL, board_init_f() just returns (to crt0). There is no
+       code relocation in SPL.
+   
+    5. Set up final environment for calling board_init_r(). This
+       environment has BSS (initialized to 0), initialized non-const
+       data (initialized to their intended value), and stack in system
+       RAM (for SPL moving the stack and GD into RAM is optional - see
+       CONFIG_SPL_STACK_R). GD has retained values set by board_init_f().
+   
+    6. For U-Boot proper (not SPL), some CPUs have some work left to do
+       at this point regarding memory, so call c_runtime_cpu_setup.
+   
+    7. Branch to board_init_r().
+   
+    For more information see 'Board Initialisation Flow in README.
+   
 
 
+   ARCH=arm CROSS_COMPILE=arm-none-eabi- make stm32h750-art-pi_defconfig
 
-   ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make stm32h750-art-pi_defconfig
-
-   ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make 
+   ARCH=arm CROSS_COMPILE=arm-none-eabi- make 
 
 
    ../qemu-7.0.0-rc4/build/arm-softmmu/qemu-system-arm -M artpi -cpu cortex-m7 -d 'in_asm,int,exec,cpu,guest_errors,unimp' -m 32M  -bios ../artpi/libraries/qemu/bootloader.bin -nographic  -s -S
