@@ -28,7 +28,7 @@
 #include "qemu/log.h"
 #include "exec/address-spaces.h"
 #include "sysemu/sysemu.h"
-#include "hw/arm/stm32h750_soc.h"
+#include "hw/arm/stm32h7x7_soc.h"
 #include "hw/qdev-clock.h"
 #include "hw/misc/unimp.h"
 #include "migration/vmstate.h"
@@ -37,10 +37,10 @@
 
 
 
-static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
+static uint64_t stm32h7x7_powermgt_read(void *opaque, hwaddr offset,
                                       unsigned size)
 {
-    STM32H750PowerMgtState *s = (STM32H750PowerMgtState *)opaque;
+    STM32H7X7PowerMgtState *s = (STM32H7X7PowerMgtState *)opaque;
     uint32_t res = 0;
 
     switch (offset) {
@@ -54,7 +54,7 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
             res= (16384 | (1 << bit_num));
 
             qemu_log_mask(LOG_UNIMP,
-                "stm32h7xx_powermgt_read: cfg offset 0x%08"HWADDR_PRIx
+                "stm32h7x7_powermgt_read: cfg offset 0x%08"HWADDR_PRIx
                 " %d\n", offset,res);
                 // RCC_FLAG_HSERDY
         break;
@@ -93,7 +93,7 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
 
     default:
         qemu_log_mask(LOG_UNIMP,
-                      "stm32h7xx_powermgt_read: Unknown offset 0x%08"HWADDR_PRIx
+                      "stm32h7x7_powermgt_read: Unknown offset 0x%08"HWADDR_PRIx
                       "\n", offset);
         res = 0;
         break;
@@ -102,16 +102,16 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
     return res;
 }
 
-static void stm32h7xx_powermgt_write(void *opaque, hwaddr offset,
+static void stm32h7x7_powermgt_write(void *opaque, hwaddr offset,
                                    uint64_t value, unsigned size)
 {
-    STM32H750PowerMgtState *s = (STM32H750PowerMgtState *)opaque;
+    STM32H7X7PowerMgtState *s = (STM32H7X7PowerMgtState *)opaque;
 
 
     switch (offset) {
         case 0:
         qemu_log_mask(LOG_UNIMP,
-                "stm32h7xx_powermgt_write: CFG\n");
+                "stm32h7x7_powermgt_write: CFG\n");
         s->cfg = value;
         break;
         case 0x10:
@@ -121,7 +121,7 @@ static void stm32h7xx_powermgt_write(void *opaque, hwaddr offset,
         /* 0x58024400
         // HSEM Read lock register
         tm32h7xx_powermgt_read: Unknown offset 0x000000e8
-        stm32h7xx_powermgt_write: Unknown offset 0x000000e8
+        stm32h7x7_powermgt_write: Unknown offset 0x000000e8
 
 
         RCC PLLs Clock Source Selection
@@ -138,76 +138,76 @@ static void stm32h7xx_powermgt_write(void *opaque, hwaddr offset,
 
     //case R_WDOG:
     //    qemu_log_mask(LOG_UNIMP,
-    //                  "stm32h7xx_powermgt_write: WDOG\n");
+    //                  "stm32h7x7_powermgt_write: WDOG\n");
     //    s->wdog = value;
     //    break;
 
     default:
         qemu_log_mask(LOG_UNIMP,
-                      "stm32h7xx_powermgt_write: Unknown offset 0x%08"HWADDR_PRIx
+                      "stm32h7x7_powermgt_write: Unknown offset 0x%08"HWADDR_PRIx
                       "\n", offset);
         break;
     }
 }
 
-static const MemoryRegionOps stm32h7xx_powermgt_ops = {
-    .read = stm32h7xx_powermgt_read,
-    .write = stm32h7xx_powermgt_write,
+static const MemoryRegionOps stm32h7x7_powermgt_ops = {
+    .read = stm32h7x7_powermgt_read,
+    .write = stm32h7x7_powermgt_write,
     .endianness = DEVICE_NATIVE_ENDIAN,
     .impl.min_access_size = 4,
     .impl.max_access_size = 4,
 };
 
-static const VMStateDescription vmstate_stm32h7xx_powermgt = {
-    .name = TYPE_STM32H750_POWERMGT,
+static const VMStateDescription vmstate_stm32h7x7_powermgt = {
+    .name = TYPE_STM32H7X7_POWERMGT,
     .version_id = 1,
     .minimum_version_id = 1,
     .fields = (VMStateField[]) {
-        VMSTATE_UINT32(cfg, STM32H750PowerMgtState),
+        VMSTATE_UINT32(cfg, STM32H7X7PowerMgtState),
         VMSTATE_END_OF_LIST()
     }
 };
 
-static void stm32h7xx_powermgt_init(Object *obj)
+static void stm32h7x7_powermgt_init(Object *obj)
 {
-    STM32H750PowerMgtState *s = STM32H750_POWERMGT(obj);
+    STM32H7X7PowerMgtState *s = STM32H7X7_POWERMGT(obj);
 
-    memory_region_init_io(&s->iomem, obj, &stm32h7xx_powermgt_ops, s,
-                          TYPE_STM32H750_POWERMGT, 0xc00);
+    memory_region_init_io(&s->iomem, obj, &stm32h7x7_powermgt_ops, s,
+                          TYPE_STM32H7X7_POWERMGT, 0xc00);
     sysbus_init_mmio(SYS_BUS_DEVICE(s), &s->iomem);
 }
 
-static void stm32h7xx_powermgt_reset(DeviceState *dev)
+static void stm32h7x7_powermgt_reset(DeviceState *dev)
 {
-    STM32H750PowerMgtState *s = STM32H750_POWERMGT(dev);
+    STM32H7X7PowerMgtState *s = STM32H7X7_POWERMGT(dev);
 
     s->cfg = 0x00000000;
     s->rpcsr = 0x02020200;
     s->hsem_lock=0;
 }
 
-static void stm32h7xx_powermgt_class_init(ObjectClass *klass, void *data)
+static void stm32h7x7_powermgt_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->reset = stm32h7xx_powermgt_reset;
-    dc->vmsd = &vmstate_stm32h7xx_powermgt;
+    dc->reset = stm32h7x7_powermgt_reset;
+    dc->vmsd = &vmstate_stm32h7x7_powermgt;
 }
 
-static const TypeInfo stm32h7xx_powermgt_info = {
-    .name          = TYPE_STM32H750_POWERMGT,
+static const TypeInfo stm32h7x7_powermgt_info = {
+    .name          = TYPE_STM32H7X7_POWERMGT,
     .parent        = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(STM32H750PowerMgtState),
-    .class_init    = stm32h7xx_powermgt_class_init,
-    .instance_init = stm32h7xx_powermgt_init,
+    .instance_size = sizeof(STM32H7X7PowerMgtState),
+    .class_init    = stm32h7x7_powermgt_class_init,
+    .instance_init = stm32h7x7_powermgt_init,
 };
 
-static void stm32h7xx_powermgt_register_types(void)
+static void stm32h7x7_powermgt_register_types(void)
 {
-    type_register_static(&stm32h7xx_powermgt_info);
+    type_register_static(&stm32h7x7_powermgt_info);
 }
 
-type_init(stm32h7xx_powermgt_register_types)
+type_init(stm32h7x7_powermgt_register_types)
 
 
 
@@ -239,9 +239,9 @@ static const int exti_irq[] =  { 6, 7, 8, 9, 10, 23, 23, 23, 23, 23, 40,
                                  40, 40, 40, 40, 40} ;
 
 
-static void stm32h750_soc_initfn(Object *obj)
+static void stm32h7x7_soc_initfn(Object *obj)
 {
-    STM32H750State *s = STM32H750_SOC(obj);
+    STM32H7X7State *s = STM32H7X7_SOC(obj);
     int i;
 
     object_initialize_child(obj, "armv7m", &s->armv7m, TYPE_ARMV7M);
@@ -274,13 +274,13 @@ static void stm32h750_soc_initfn(Object *obj)
     s->sysclk = qdev_init_clock_in(DEVICE(s), "sysclk", NULL, NULL, 0);
     s->refclk = qdev_init_clock_in(DEVICE(s), "refclk", NULL, NULL, 0);
 
-    object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H750_POWERMGT);
+    object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H7X7_POWERMGT);
 
 }
 
-static void stm32h750_soc_realize(DeviceState *dev_soc, Error **errp)
+static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
 {
-    STM32H750State *s = STM32H750_SOC(dev_soc);
+    STM32H7X7State *s = STM32H7X7_SOC(dev_soc);
     MemoryRegion *system_memory = get_system_memory();
     DeviceState *dev, *armv7m;
     SysBusDevice *busdev;
@@ -671,11 +671,11 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("RAMECC1",0x52009000,0x400);
     create_unimplemented_device("SYSCFG_EXTI",0x58000000,0x800);
     create_unimplemented_device("LPUART1",0x58000c00,0x400);
-    create_unimplemented_device("SPI6",0x58001400,0x400)
+    create_unimplemented_device("SPI6",0x58001400,0x400);
     create_unimplemented_device("I2C4",0x58001c00,0x400);
-    create_unimplemented_device("LPTIM2_LPTIM3_LPTIM4_LPTIM5",0x58002400,0x1000)
+    create_unimplemented_device("LPTIM2_LPTIM3_LPTIM4_LPTIM5",0x58002400,0x1000);
     create_unimplemented_device("COMP1_VREFBUF_RTC",0x58003800,0xc00);
-    create_unimplemented_device("IWDG1_IWDG2",0x58004800,0x800)
+    create_unimplemented_device("IWDG1_IWDG2",0x58004800,0x800);
     create_unimplemented_device("SAI4",0x58005400,0x400);
     create_unimplemented_device("GPIOA_GPIOB_GPIOC_GPIOD_GPIOE_GPIOF_GPIOG_GPIOH_GPIOI_GPIOJ_GPIOK",0x58020000,0x2c00);
     //create_unimplemented_device("PWR_CRC_RCC",0x58024400,0xc00);
@@ -689,6 +689,14 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("FPU_CPACR",0xe000ed88,0x5);
     create_unimplemented_device("MPU",0xe000ed90,0x15);
     create_unimplemented_device("NVIC_STIR",0xe000ef00,0x5);
+
+    create_unimplemented_device("Flash",0x52002000,0x1400);
+    create_unimplemented_device("DBGMCU",0x5c001000,0x400);
+
+    create_unimplemented_device("SWITCH_MATRIX",0x51008100,0x200);
+
+    
+
 
  /*   
     create_unimplemented_device("WWDG",0x50003000,0x400);
@@ -730,31 +738,31 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 
 }
 
-static Property stm32h750_soc_properties[] = {
-    DEFINE_PROP_STRING("cpu-type", STM32H750State, cpu_type),
+static Property stm32h7x7_soc_properties[] = {
+    DEFINE_PROP_STRING("cpu-type", STM32H7X7State, cpu_type),
     DEFINE_PROP_END_OF_LIST(),
 };
 
-static void stm32h750_soc_class_init(ObjectClass *klass, void *data)
+static void stm32h7x7_soc_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->realize = stm32h750_soc_realize;
-    device_class_set_props(dc, stm32h750_soc_properties);
+    dc->realize = stm32h7x7_soc_realize;
+    device_class_set_props(dc, stm32h7x7_soc_properties);
     /* No vmstate or reset required: device has no internal state */
 }
 
-static const TypeInfo stm32h750_soc_info = {
-    .name          = TYPE_STM32H750_SOC,
+static const TypeInfo stm32h7x7_soc_info = {
+    .name          = TYPE_STM32H7X7_SOC,
     .parent        = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(STM32H750State),
-    .instance_init = stm32h750_soc_initfn,
-    .class_init    = stm32h750_soc_class_init,
+    .instance_size = sizeof(STM32H7X7State),
+    .instance_init = stm32h7x7_soc_initfn,
+    .class_init    = stm32h7x7_soc_class_init,
 };
 
-static void stm32h750_soc_types(void)
+static void stm32h7x7_soc_types(void)
 {
-    type_register_static(&stm32h750_soc_info);
+    type_register_static(&stm32h7x7_soc_info);
 }
 
-type_init(stm32h750_soc_types)
+type_init(stm32h7x7_soc_types)
