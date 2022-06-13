@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -75,7 +75,7 @@ struct boot_rsp {
 
 /* Private variables ---------------------------------------------------------*/
 
-extern QSPI_HandleTypeDef hqspi;
+QSPI_HandleTypeDef hqspi;
 
 UART_HandleTypeDef huart4;
 
@@ -87,7 +87,7 @@ UART_HandleTypeDef huart4;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
-//static void MX_QUADSPI_Init(void);
+static void MX_QUADSPI_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,7 +112,7 @@ struct arm_vector_table {
 };
 
 /**
-  * @brief ÂêØÂä® image
+  * @brief Â?ØÂä® image
   * @param struct boot_rsp * rsp: 
   * retval N/A.
   */
@@ -138,10 +138,6 @@ static void do_boot(struct boot_rsp * rsp)
 }
 
 /* USER CODE END 0 */
-
-struct image_header hdr;
-
-struct boot_rsp dummy_rsp;
 
 /**
   * @brief  The application entry point.
@@ -173,6 +169,7 @@ int main(void)
   MX_GPIO_Init();
   MX_UART4_Init();
   MX_QUADSPI_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
   // Map flash
@@ -229,8 +226,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 5;
@@ -270,7 +268,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_GEN_QUADSPI_Init(void)
+static void MX_QUADSPI_Init(void)
 {
 
   /* USER CODE BEGIN QUADSPI_Init 0 */
@@ -362,9 +360,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pins : PK5 PK4 PK6 PK3
                            PK2 PK0 PK1 */
