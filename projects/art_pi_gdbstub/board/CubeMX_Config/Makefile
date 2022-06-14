@@ -13,7 +13,7 @@
 ######################################
 # target
 ######################################
-TARGET = CubeMX_Config
+TARGET = artpi_gdbstub_boot
 
 
 ######################################
@@ -40,8 +40,15 @@ Core/Src/main.c \
 Core/Src/stm32h7xx_it.c \
 Core/Src/stm32h7xx_hal_msp.c \
 ../../applications/w25qxx.c \
+../../applications/gdb_main.c \
+../../applications/gdb_packet.c \
+../../applications/gdb_if_cdc.c \
 ../../applications/platform.c \
-../../applications/target/stm32h7.c \
+../../applications/command.c \
+../../applications/target/stm32h7_target.c \
+../../applications/target.c \
+../../applications/crc32.c \
+../../applications/hex_utils.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \

@@ -66,6 +66,11 @@ struct boot_rsp {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+struct image_header hdr;
+
+struct boot_rsp dummy_rsp;
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -75,7 +80,7 @@ struct boot_rsp {
 
 /* Private variables ---------------------------------------------------------*/
 
-QSPI_HandleTypeDef hqspi;
+extern QSPI_HandleTypeDef hqspi;
 
 UART_HandleTypeDef huart4;
 
@@ -87,7 +92,7 @@ UART_HandleTypeDef huart4;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
-static void MX_QUADSPI_Init(void);
+//static void MX_QUADSPI_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,7 +117,7 @@ struct arm_vector_table {
 };
 
 /**
-  * @brief å?¯åŠ¨ image
+  * @brief ï¿½?ï¿½åŠ¨ image
   * @param struct boot_rsp * rsp: 
   * retval N/A.
   */
@@ -138,6 +143,7 @@ static void do_boot(struct boot_rsp * rsp)
 }
 
 /* USER CODE END 0 */
+extern   void main_task(void *parameters);
 
 /**
   * @brief  The application entry point.
@@ -190,13 +196,16 @@ int main(void)
   HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
 
 
-  do_boot(&dummy_rsp);
+  // Check button press to do proper boot
+  //do_boot(&dummy_rsp);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    // gdb main task
+    main_task(NULL);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -268,7 +277,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_QUADSPI_Init(void)
+static void MX_LOCAL_QUADSPI_Init(void)
 {
 
   /* USER CODE BEGIN QUADSPI_Init 0 */

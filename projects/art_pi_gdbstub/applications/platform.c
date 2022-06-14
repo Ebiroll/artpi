@@ -62,8 +62,8 @@ const char *platform_target_voltage(void)
 
 uint32_t platform_time_ms(void)
 {
-
-	//return xTaskGetTickCount() / portTICK_RATE_MS;
+	int64_t time_milli=HAL_GetTick();
+	return((uint32_t)time_milli);
 }
 
 //#define vTaskDelayMs(ms)	vTaskDelay((ms)/portTICK_RATE_MS)
@@ -79,8 +79,6 @@ void platform_delay(uint32_t ms)
 	 __ASM volatile ("nop");
 	 //__asm("nop");
 	}
-
-
 
 	//vTaskDelayMs(ms);
 }

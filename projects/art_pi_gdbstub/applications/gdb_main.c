@@ -262,7 +262,7 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 			}
 			*/
 
-			gdbstub_freertos_report_thread();
+			//gdbstub_freertos_report_thread();
 			break;
 			}
 		case 'F':	/* Semihosting call finished */
@@ -348,7 +348,7 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 			if (pbuf[1] == 'g') {
 				uint8_t *data=(uint8_t *)&pbuf[2];
 				uint32_t thread = gdb_get_hex_val(&data, -1);
-				gdbstub_freertos_task_select(thread);
+				//gdbstub_freertos_task_select(thread);
 			}
 			gdb_putpacketz("OK");
 		break;
@@ -423,7 +423,7 @@ handle_q_packet(char *packet, int len)
 		printf("----------------\n");
 		//gdb_putpacketz("");
 
-		gdbstub_freertos_task_list(packet);
+		//gdbstub_freertos_task_list(packet);
 		return;
 	}
 
@@ -597,12 +597,13 @@ handle_z_packet(char *packet, int plen)
 	}
 }
 
-
-target *esp32_probe(struct target_controller *controller);
+target *stm32h7_probe_with_controller(struct target_controller *controller);
 
 void gdb_main(void)
-{
-	cur_target = esp32_probe(&gdb_controller);
+{	
+	//gdb_controller
+	//gdb_controller.
+	cur_target = stm32h7_probe_with_controller(&gdb_controller);
 	gdb_main_loop(&gdb_controller, false);
 }
 

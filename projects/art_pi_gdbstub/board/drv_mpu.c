@@ -11,6 +11,9 @@
 #include "stm32h7xx.h"
 #include "board.h"
 
+// Allow execution from SDRAM
+#define BSP_USING_SDRAM  1
+
 int mpu_init(void)
 {
     MPU_Region_InitTypeDef MPU_InitStruct;

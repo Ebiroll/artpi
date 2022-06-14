@@ -1,5 +1,5 @@
 /*
- * This file is part of the Black Magic Debug project.
+ * This heavily hacked, file is part of the Black Magic Debug project.
  *
  * Copyright (C) 2017-2020 Uwe Bonnes bon@elektron.ikp.physik.tu-darmstadt.de
  *
@@ -36,6 +36,8 @@
 #include "target.h"
 #include "target_internal.h"
 #include "cortexm.h"
+#include "stm32h7_priv.h"
+
 
 static bool stm32h7_cmd_erase_mass(target *t, int argc, const char **argv);
 /* static bool stm32h7_cmd_option(target *t, int argc, char *argv[]); */
@@ -57,6 +59,39 @@ const struct command_s stm32h7_cmd_list[] = {
 	 "Returns the Device ID and Revision"},
 	{NULL, NULL, NULL}
 };
+
+
+static const char tdesc_h7[] =
+	"<?xml version=\"1.0\"?>"
+	"<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
+	"<target>"
+	"  <architecture>arm</architecture>"
+	"  <feature name=\"org.gnu.gdb.arm.m-profile\">"
+	"    <reg name=\"r0\" bitsize=\"32\"/>"
+	"    <reg name=\"r1\" bitsize=\"32\"/>"
+	"    <reg name=\"r2\" bitsize=\"32\"/>"
+	"    <reg name=\"r3\" bitsize=\"32\"/>"
+	"    <reg name=\"r4\" bitsize=\"32\"/>"
+	"    <reg name=\"r5\" bitsize=\"32\"/>"
+	"    <reg name=\"r6\" bitsize=\"32\"/>"
+	"    <reg name=\"r7\" bitsize=\"32\"/>"
+	"    <reg name=\"r8\" bitsize=\"32\"/>"
+	"    <reg name=\"r9\" bitsize=\"32\"/>"
+	"    <reg name=\"r10\" bitsize=\"32\"/>"
+	"    <reg name=\"r11\" bitsize=\"32\"/>"
+	"    <reg name=\"r12\" bitsize=\"32\"/>"
+	"    <reg name=\"sp\" bitsize=\"32\" type=\"data_ptr\"/>"
+	"    <reg name=\"lr\" bitsize=\"32\" type=\"code_ptr\"/>"
+	"    <reg name=\"pc\" bitsize=\"32\" type=\"code_ptr\"/>"
+	"    <reg name=\"xpsr\" bitsize=\"32\"/>"
+	"    <reg name=\"msp\" bitsize=\"32\" save-restore=\"no\" type=\"data_ptr\"/>"
+	"    <reg name=\"psp\" bitsize=\"32\" save-restore=\"no\" type=\"data_ptr\"/>"
+	"    <reg name=\"primask\" bitsize=\"8\" save-restore=\"no\"/>"
+	"    <reg name=\"basepri\" bitsize=\"8\" save-restore=\"no\"/>"
+	"    <reg name=\"faultmask\" bitsize=\"8\" save-restore=\"no\"/>"
+	"    <reg name=\"control\" bitsize=\"8\" save-restore=\"no\"/>"
+	"  </feature>"
+	"</target>";
 
 
 static int stm32h7_flash_erase(struct target_flash *f, target_addr addr,
@@ -255,14 +290,53 @@ bool stm32h7_probe(target *t)
 	return false;
 }
 
+void h7_mem_read(target *t, void *dest, target_addr src,size_t len) {
+   	//printf("esp32_mem_read %d\n",len);
+	int * i = (int *) (src & (~3));
+
+	// TODO: better address range check?
+	if (src < 0x20000000 || src >= 0x60000000) {
+		return;
+	}
+
+    int * dm = (int *) dest;
+    *dm= *i >> ((src & 3) * 8);
+}
+
+void h7_mem_write(target *t, target_addr dest,const void *src, size_t len) {
+  int * ip = (int *) (dest & (~3));
+  int * sip = (int *) (dest & (~3));
+
+  for(int i=0; i<len/4; i++) {
+    ip[i] = sip[i];
+  }
+}
+
+static bool h7_check_error(target *t)
+{
+	return false;
+}
+
+static void h7_priv_free(void *priv)
+{
+	free(priv);
+}
+
+
 target *stm32h7_probe_with_controller(struct target_controller *controller)
 {
 	target *t;
 
 	t = target_new();
-	struct esp32_priv *priv = calloc(1, sizeof(*priv));
+	struct ADIv5_AP_s *priv = calloc(1, sizeof(*priv));
 	t->priv = priv;
 
+	t->priv_free = h7_priv_free;
+	t->check_error = h7_check_error;
+	t->mem_read = h7_mem_read;
+	t->mem_write = h7_mem_write;
+
+    t->driver = stm32h7_driver_str;
 
     target_check_error(t);
 
