@@ -77,22 +77,22 @@ global_data is a structure used by u-boot.
 
 
    (gdb) p *gd_ptr             
-   $13 = {bd = 0x0, flags = 0, baudrate = 0, cpu_clk = 0, bus_clk = 0, pci_clk = 0, mem_clk = 0, have_console = 0,
-   env_addr = 0,	env_valid = 0, env_has_init = 0, env_load_prio = 0, ram_base = 0, ram_top = 0, relocaddr = 0,
-   ram_size = 0,	mon_len = 241896, irq_sp = 0, start_addr_sp = 0, reloc_off = 0,	new_gd = 0x0, dm_root = 0x0,
-   dm_root_f = 0x0, uclass_root_s = {next = 0x0,	prev = 0x0}, uclass_root = 0x0,	timer = 0x0, 
-   fdt_blob = 0x90040044, new_fdt = 0x0,	fdt_size = 0, fdt_src = FDTSRC_SEPARATE, jt = 0x0,
-   env_buf = '\000' * 31 , timebase_h = 0, timebase_l = 0, malloc_base = 604238080,	malloc_limit = 0,
-   malloc_ptr = 0, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0, tbu = 0, tbl = 0, lastinc = 0,
-    timer_reset_value = 0, tlb_addr = 0, tlb_size = 0}, dmtag_list = {next = 0x0, prev = 0x0}}
+    $13 = {bd = 0x0, flags = 0, baudrate = 0, cpu_clk = 0, bus_clk = 0, pci_clk = 0, mem_clk = 0, have_console = 0,
+    env_addr = 0,	env_valid = 0, env_has_init = 0, env_load_prio = 0, ram_base = 0, ram_top = 0, relocaddr = 0,
+    ram_size = 0,	mon_len = 241896, irq_sp = 0, start_addr_sp = 0, reloc_off = 0,	new_gd = 0x0, dm_root = 0x0,
+    dm_root_f = 0x0, uclass_root_s = {next = 0x0,	prev = 0x0}, uclass_root = 0x0,	timer = 0x0, 
+    fdt_blob = 0x90040044, new_fdt = 0x0,	fdt_size = 0, fdt_src = FDTSRC_SEPARATE, jt = 0x0,
+    env_buf = '\000' * 31 , timebase_h = 0, timebase_l = 0, malloc_base = 604238080,	malloc_limit = 0,
+    malloc_ptr = 0, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0, tbu = 0, tbl = 0, lastinc = 0,
+     timer_reset_value = 0, tlb_addr = 0, tlb_size = 0}, dmtag_list = {next = 0x0, prev = 0x0}}
 
  p/x *gd
 $9 = {bd = 0x0, flags = 0x0, baudrate = 0x1e8480, cpu_clk = 0x0, bus_clk = 0x0, pci_clk = 0x0, mem_clk = 0x0, have_console = 0x0, env_addr = 0x9002a004, env_valid = 0x1,
-  env_has_init = 0x1000, env_load_prio = 0x0, ram_base = 0x0, ram_top = 0x0, relocaddr = 0x0, ram_size = 0x0, mon_len = 0x39d68, irq_sp = 0x0, start_addr_sp = 0x0, reloc_off = 0x0,
-  new_gd = 0x0, dm_root = 0x2403f118, dm_root_f = 0x0, uclass_root_s = {next = 0x2403f110, prev = 0x2403f110}, uclass_root = 0x2403f07c, timer = 0x0, fdt_blob = 0x9003ea7c, 
-  new_fdt = 0x0, fdt_size = 0x0, fdt_src = 0x0, jt = 0x0, env_buf = {0x32, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0 <repeats 25 times>}, timebase_h = 0x0, timebase_l = 0x0,
-  malloc_base = 0x2403f100, malloc_limit = 0xf00, malloc_ptr = 0x6c, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0x0, tbu = 0x0, tbl = 0x0, lastinc = 0x0, timer_reset_value = 0x0,
-    tlb_addr = 0x0, tlb_size = 0x0}, dmtag_list = {next = 0x2403f0f8, prev = 0x2403f0f8}}
+   env_has_init = 0x1000, env_load_prio = 0x0, ram_base = 0x0, ram_top = 0x0, relocaddr = 0x0, ram_size = 0x0, mon_len = 0x39d68, irq_sp = 0x0, start_addr_sp = 0x0, reloc_off = 0x0,
+   new_gd = 0x0, dm_root = 0x2403f118, dm_root_f = 0x0, uclass_root_s = {next = 0x2403f110, prev = 0x2403f110}, uclass_root = 0x2403f07c, timer = 0x0, fdt_blob = 0x9003ea7c, 
+   new_fdt = 0x0, fdt_size = 0x0, fdt_src = 0x0, jt = 0x0, env_buf = {0x32, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0 <repeats 25 times>}, timebase_h = 0x0, timebase_l = 0x0,
+   malloc_base = 0x2403f100, malloc_limit = 0xf00, malloc_ptr = 0x6c, cur_serial_dev = 0x0, arch = {timer_rate_hz = 0x0, tbu = 0x0, tbl = 0x0, lastinc = 0x0, timer_reset_value = 0x0,
+     tlb_addr = 0x0, tlb_size = 0x0}, dmtag_list = {next = 0x2403f0f8, prev = 0x2403f0f8}}
 
 
 
@@ -460,7 +460,109 @@ dm_init_and_scan()
 
       Starting kernel ...
 
-Fun ends here
+      [    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.12.0-rc2-28712-gbce82a062e70-dirty (fmin@fmin-OptiPlex-7060) (arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release), GNU ld (GNU Arm Embedded Toolchain 10-2020-q4-major) 2.35.1.20201028) #455 PREEMPT Fri Mar 12 13:39:49 CST 2021
+[    0.000000] CPU: ARMv7-M [411fc272] revision 2 (ARMv7M), cr=00000000
+[    0.000000] CPU: unknown data cache, unknown instruction cache
+[    0.000000] OF: fdt: Machine model: RT-Thread STM32H750i-ART-PI board
+[    0.000000] Reserved memory: created DMA memory pool at 0xc1f00000, size 1 MiB
+[    0.000000] OF: reserved mem: initialized node linux,cma, compatible id shared-dma-pool
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] On node 0 totalpages: 7936
+[    0.000000]   Normal zone: 62 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 7936 pages, LIFO batch:0
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 7874
+[    0.000000] Kernel command line: console=ttySTM0,2000000 root=/dev/ram loglevel=8
+[    0.000000] Dentry cache hash table entries: 4096 (order: 2, 16384 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
+[    0.000000] Memory: 23864K/31744K available (3973K kernel code, 495K rwdata, 1460K rodata, 1208K init, 148K bss, 7880K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu:     RCU event tracing is enabled.
+[    0.000000]  Trampoline variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] /soc/interrupt-controller@58000000: bank0
+[    0.000000] /soc/interrupt-controller@58000000: bank1
+[    0.000000] /soc/interrupt-controller@58000000: bank2
+[    0.000000] random: get_random_bytes called from start_kernel+0x1e9/0x364 with crng_init=0
+[    0.000000] clocksource: arm_system_timer: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 29863442 ns
+[    0.000000] ARM System timer initialized as clocksource
+[    0.083744] sched_clock: 32 bits at 6MHz, resolution 160ns, wraps every 343597383600ns
+[    0.172992] timer@40000c00: STM32 sched_clock registered
+[    0.224352] Switching to timer-based delay loop, resolution 160ns
+[    0.262176] timer@40000c00: STM32 delay timer registered
+[    0.305152] clocksource: timer@40000c00: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 305801671480 ns
+[    0.736912] /soc/timer@40000c00: STM32 clockevent driver initialized (32 bits)
+[    2.024944] Console: colour dummy device 80x30
+[    2.567376] Calibrating delay loop (skipped), value calculated using timer frequency.. 12.50 BogoMIPS (lpj=62500)
+[    2.642256] pid_max: default: 4096 minimum: 301
+[    3.239584] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    3.274576] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[   15.151856] rcu: Hierarchical SRCU implementation.
+[   19.502800] devtmpfs: initialized
+[   29.915312] DMA: default coherent area is set
+[   29.950640] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[   30.185024] pinctrl core: initialized pinctrl subsystem
+[   36.901408] NET: Registered protocol family 16
+[   56.577024] stm32h743-pinctrl soc:pin-controller: No package detected, use default one
+[   62.379408] stm32h743-pinctrl soc:pin-controller: GPIOA bank added
+[   63.051552] stm32h743-pinctrl soc:pin-controller: GPIOB bank added
+[   63.665056] stm32h743-pinctrl soc:pin-controller: GPIOC bank added
+[   64.264416] stm32h743-pinctrl soc:pin-controller: GPIOD bank added
+[   64.869584] stm32h743-pinctrl soc:pin-controller: GPIOE bank added
+[   65.479792] stm32h743-pinctrl soc:pin-controller: GPIOF bank added
+[   66.073376] stm32h743-pinctrl soc:pin-controller: GPIOG bank added
+[   66.671648] stm32h743-pinctrl soc:pin-controller: GPIOH bank added
+[   67.295472] stm32h743-pinctrl soc:pin-controller: GPIOI bank added
+[   67.912016] stm32h743-pinctrl soc:pin-controller: GPIOJ bank added
+[   68.515632] stm32h743-pinctrl soc:pin-controller: GPIOK bank added
+[   68.565136] stm32h743-pinctrl soc:pin-controller: Pinctrl STM32 initialized
+[   92.069088] stm32-dma 40020000.dma-controller: STM32 DMA driver registered
+[   93.576272] stm32-dma 40020400.dma-controller: STM32 DMA driver registered
+[   94.304176] stm32-mdma 52000000.dma-controller: failed to request IRQ
+[   94.737936] stm32-mdma: probe of 52000000.dma-controller failed with error -38
+[  103.506048] Bluetooth: Core ver 2.22
+[  103.614032] NET: Registered protocol family 31
+[  103.636480] Bluetooth: HCI device and connection manager initialized
+[  103.741504] Bluetooth: HCI socket layer initialized
+[  103.796672] Bluetooth: L2CAP socket layer initialized
+[  103.908912] Bluetooth: SCO socket layer initialized
+[  105.311248] clocksource: Switched to clocksource timer@40000c00
+[  119.133280] NET: Registered protocol family 2
+[  121.780880] tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 4096 bytes, linear)
+[  121.857200] TCP established hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[  121.919584] TCP bind hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[  122.049824] TCP: Hash tables configured (established 1024 bind 1024)
+[  122.588224] UDP hash table entries: 256 (order: 0, 4096 bytes, linear)
+[  122.689488] UDP-Lite hash table entries: 256 (order: 0, 4096 bytes, linear)
+[  123.345472] NET: Registered protocol family 1
+[  486.416544] Initialise system trusted keyrings
+[  487.288800] workingset: timestamp_bits=30 max_order=13 bucket_order=0
+[  495.086816] jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+[  509.034592] jitterentropy: Initialization failed with host not compliant with requirements: 2
+[  509.096240] Key type asymmetric registered
+[  509.145776] Asymmetric key parser 'x509' registered
+[  509.251824] io scheduler mq-deadline registered
+[  509.316928] io scheduler kyber registered
+[  510.106544] STM32 USART driver initialized
+[  511.918656] 40004800.serial: ttySTM1 at MMIO 0x40004800 (irq = 30, base_baud = 390625) is a stm32-usart
+[  516.687648] 40004c00.serial: ttySTM0 at MMIO 0x40004c00 (irq = 31, base_baud = 390625) is a stm32-usart
+[  523.692320] printk: console [ttySTM0] enabled
+[  524.337824] stm32-usart 40004c00.serial: rx dma alloc failed
+[  524.392800] stm32-usart 40004c00.serial: interrupt mode used for rx (no dma)
+[  524.520624] stm32-usart 40004c00.serial: tx dma alloc failed
+[  524.568832] stm32-usart 40004c00.serial: interrupt mode used for tx (no dma)
+
 
 # compared to real hardware boot.
 
@@ -513,27 +615,112 @@ Hit SPACE in 3 seconds to stop autoboot.
   
 Starting kernel ...  
   
-[    0.000000] Booting Linux on physical CPU 0x0  
-[    0.000000] Linux version 5.12.0-rc2-28712-gbce82a062e70-dirty (fmin@fmin-OptiPlex-7060) (arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release), 
+```
+(qemu version)
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.12.0-rc2-28712-gbce82a062e70-dirty (fmin@fmin-OptiPlex-7060) (arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release), GNU ld (GNU Arm Embedded Toolchain 10-2020-q4-major) 2.35.1.20201028) #455 PREEMPT Fri Mar 12 13:39:49 CST 2021
+[    0.000000] CPU: ARMv7-M [411fc272] revision 2 (ARMv7M), cr=00000000
+[    0.000000] CPU: unknown data cache, unknown instruction cache
+[    0.000000] OF: fdt: Machine model: RT-Thread STM32H750i-ART-PI board
+[    0.000000] Reserved memory: created DMA memory pool at 0xc1f00000, size 1 MiB
+[    0.000000] OF: reserved mem: initialized node linux,cma, compatible id shared-dma-pool
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] Initmem setup node 0 [mem 0x00000000c0000000-0x00000000c1efffff]
+[    0.000000] On node 0 totalpages: 7936
+[    0.000000]   Normal zone: 62 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 7936 pages, LIFO batch:0
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 7874
+[    0.000000] Kernel command line: console=ttySTM0,2000000 root=/dev/ram loglevel=8
+[    0.000000] Dentry cache hash table entries: 4096 (order: 2, 16384 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
+[    0.000000] Memory: 23864K/31744K available (3973K kernel code, 495K rwdata, 1460K rodata, 1208K init, 148K bss, 7880K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu:     RCU event tracing is enabled.
+[    0.000000]  Trampoline variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] /soc/interrupt-controller@58000000: bank0
+[    0.000000] /soc/interrupt-controller@58000000: bank1
+[    0.000000] /soc/interrupt-controller@58000000: bank2
+[    0.000000] random: get_random_bytes called from start_kernel+0x1e9/0x364 with crng_init=0
+[    0.000000] clocksource: arm_system_timer: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 29863442 ns
+[    0.000000] ARM System timer initialized as clocksource
+[    0.083744] sched_clock: 32 bits at 6MHz, resolution 160ns, wraps every 343597383600ns
+[    0.172992] timer@40000c00: STM32 sched_clock registered
+[    0.224352] Switching to timer-based delay loop, resolution 160ns
+[    0.262176] timer@40000c00: STM32 delay timer registered
+[    0.305152] clocksource: timer@40000c00: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 305801671480 ns
+[    0.736912] /soc/timer@40000c00: STM32 clockevent driver initialized (32 bits)
+[    2.024944] Console: colour dummy device 80x30
+[    2.567376] Calibrating delay loop (skipped), value calculated using timer frequency.. 12.50 BogoMIPS (lpj=62500)
+[    2.642256] pid_max: default: 4096 minimum: 301
+[    3.239584] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    3.274576] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[   15.151856] rcu: Hierarchical SRCU implementation.
+[   19.502800] devtmpfs: initialized
+[   29.915312] DMA: default coherent area is set
+[   29.950640] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[   30.185024] pinctrl core: initialized pinctrl subsystem
+[   36.901408] NET: Registered protocol family 16
+[   56.577024] stm32h743-pinctrl soc:pin-controller: No package detected, use default one
+[   62.379408] stm32h743-pinctrl soc:pin-controller: GPIOA bank added
+[   63.051552] stm32h743-pinctrl soc:pin-controller: GPIOB bank added
+[   63.665056] stm32h743-pinctrl soc:pin-controller: GPIOC bank added
+[   64.264416] stm32h743-pinctrl soc:pin-controller: GPIOD bank added
+[   64.869584] stm32h743-pinctrl soc:pin-controller: GPIOE bank added
+[   65.479792] stm32h743-pinctrl soc:pin-controller: GPIOF bank added
+[   66.073376] stm32h743-pinctrl soc:pin-controller: GPIOG bank added
+[   66.671648] stm32h743-pinctrl soc:pin-controller: GPIOH bank added
+[   67.295472] stm32h743-pinctrl soc:pin-controller: GPIOI bank added
+[   67.912016] stm32h743-pinctrl soc:pin-controller: GPIOJ bank added
+[   68.515632] stm32h743-pinctrl soc:pin-controller: GPIOK bank added
+[   68.565136] stm32h743-pinctrl soc:pin-controller: Pinctrl STM32 initialized
+[   92.069088] stm32-dma 40020000.dma-controller: STM32 DMA driver registered
+[   93.576272] stm32-dma 40020400.dma-controller: STM32 DMA driver registered
+[   94.304176] stm32-mdma 52000000.dma-controller: failed to request IRQ
+[   94.737936] stm32-mdma: probe of 52000000.dma-controller failed with error -38
+[  103.506048] Bluetooth: Core ver 2.22
+[  103.614032] NET: Registered protocol family 31
+[  103.636480] Bluetooth: HCI device and connection manager initialized
+[  103.741504] Bluetooth: HCI socket layer initialized
+[  103.796672] Bluetooth: L2CAP socket layer initialized
+[  103.908912] Bluetooth: SCO socket layer initialized
+[  105.311248] clocksource: Switched to clocksource timer@40000c00
+[  119.133280] NET: Registered protocol family 2
+[  121.780880] tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 4096 bytes, linear)
+[  121.857200] TCP established hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[  121.919584] TCP bind hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[  122.049824] TCP: Hash tables configured (established 1024 bind 1024)
+[  122.588224] UDP hash table entries: 256 (order: 0, 4096 bytes, linear)
+[  122.689488] UDP-Lite hash table entries: 256 (order: 0, 4096 bytes, linear)
+[  123.345472] NET: Registered protocol family 1
+[  486.416544] Initialise system trusted keyrings
+[  487.288800] workingset: timestamp_bits=30 max_order=13 bucket_order=0
+[  495.086816] jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+[  509.034592] jitterentropy: Initialization failed with host not compliant with requirements: 2
+[  509.096240] Key type asymmetric registered
+[  509.145776] Asymmetric key parser 'x509' registered
+[  509.251824] io scheduler mq-deadline registered
+[  509.316928] io scheduler kyber registered
+[  510.106544] STM32 USART driver initialized
+[  511.918656] 40004800.serial: ttySTM1 at MMIO 0x40004800 (irq = 30, base_baud = 390625) is a stm32-usart
+[  516.687648] 40004c00.serial: ttySTM0 at MMIO 0x40004c00 (irq = 31, base_baud = 390625) is a stm32-usart
+[  523.692320] printk: console [ttySTM0] enabled
+[  524.337824] stm32-usart 40004c00.serial: rx dma alloc failed
+[  524.392800] stm32-usart 40004c00.serial: interrupt mode used for rx (no dma)
+[  524.520624] stm32-usart 40004c00.serial: tx dma alloc failed
+[  524.568832] stm32-usart 40004c00.serial: interrupt mode used for tx (no dma)
 
-
-# First qemu boot message
-
-      -Boot 2022.04-00992-g9bb99fa958 (May 17 2022 - 08:45:08 +0200)
-
-      Model: RT-Thread STM32H750i-ART-PI board
-      DRAM:  stm32_fmc fmc@52004000: can't find syscon device (-2)
-      stm32_fmc fmc@52004000: no of banks = 1
-      pinctrl_stm32 pin-controller@58020000: periph->name = fmc@52004000
-      gpio_stm32 gpio@58020c00: addr = 0x58020c00 bank_name = GPIOD gpio_count = 16 gpio_range = 0xffff
-      stm32h7_rcc_clock reset-clock-controller@58024400: clk->id 33
-      stm32h7_rcc_clock reset-clock-controller@58024400: clkid=33 gate offset=0xe0 bit_index=3 name=gpiod
-      stm32h7xx_powermgt_read: Unknown offset 0x000000e0
-      stm32h7xx_powermgt_write: Unknown offset 0x000000e0
-      gpio_stm32 gpio@58020c00: clock enabled
-
-
-
+```
 
 
 
@@ -976,79 +1163,4 @@ Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
 Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
 Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
 Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 4, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F42, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F44, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F46, size 2, region '(null)', reason: rejected
-Invalid read at addr 0x90000F48, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFA, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFC, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-Invalid read at addr 0xFFFFFFFE, size 2, region '(null)', reason: rejected
-
 

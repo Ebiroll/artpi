@@ -143,6 +143,9 @@ struct image_header hdr;
 
 struct boot_rsp dummy_rsp;
 
+
+int mpu_init(void);
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -192,6 +195,7 @@ int main(void)
   uint8_t BootText[] = "do_boot !!!\r\n"; //Data to send
   HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
 
+  mpu_init();
 
   do_boot(&dummy_rsp);
   /* USER CODE END 2 */
