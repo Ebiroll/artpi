@@ -117,7 +117,7 @@ struct arm_vector_table {
 };
 
 /**
-  * @brief �?�动 image
+  * @brief Boot image
   * @param struct boot_rsp * rsp: 
   * retval N/A.
   */
@@ -125,8 +125,8 @@ static void do_boot(struct boot_rsp * rsp)
 {
     struct arm_vector_table *vt;
 
-    //LOG_I("imgae_off=%x flashid=%d", rsp->br_image_off, rsp->br_flash_dev_id);
-    //LOG_I("raw_imgae_off=%x", (rsp->br_image_off + rsp->br_hdr->ih_hdr_size));
+    //LOG_I("image_off=%x flashid=%d", rsp->br_image_off, rsp->br_flash_dev_id);
+    //LOG_I("raw_image_off=%x", (rsp->br_image_off + rsp->br_hdr->ih_hdr_size));
 
     W25Q_Memory_Mapped_Enable();
     vt = (struct arm_vector_table *)(rsp->br_image_off + rsp->br_hdr->ih_hdr_size);
@@ -192,7 +192,7 @@ int main(void)
   SCB_DisableICache();
   SCB_DisableDCache();
 
-  uint8_t BootText[] = "do_boot !!!\r\n"; //Data to send
+  uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
   HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
 
 

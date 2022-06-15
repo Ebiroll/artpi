@@ -15,12 +15,13 @@ TARGET ?= classA
 #OBJCOPY  = $(GCC_ROOT)/bin/arm-none-eabi-objcopy
 #OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
 
-GCC_ROOT = /home/olof/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/
-CC       = $(GCC_ROOT)/bin/arm-linux-gnueabi-gcc
-CXX      = $(GCC_ROOT)/bin/arm-linux-gnueabi-g++
-LD      = $(GCC_ROOT)/bin/arm-linux-gnueabi-ld
-OBJCOPY  = $(GCC_ROOT)/bin/arm-linux-gnueabi-objcopy
-OBJSIZE  = $(GCC_ROOT)/bin/arm-linux-gnueabi-size
+#GCC_ROOT = /home/olof/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/
+GCC_ROOT = /usr/
+CC       = $(GCC_ROOT)/bin/arm-none-eabi-gcc
+CXX      = $(GCC_ROOT)/bin/arm-none-eabi-g++
+LD      = $(GCC_ROOT)/bin/arm-none-eabi-ld
+OBJCOPY  = $(GCC_ROOT)/bin/arm-none-eabi-objcopy
+OBJSIZE  = $(GCC_ROOT)/bin/arm-none-eabi-size
 
 # ../libraries/STM32H7xx_HAL/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h750xx.s
 

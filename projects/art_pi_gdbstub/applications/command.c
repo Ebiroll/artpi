@@ -154,6 +154,22 @@ bool cmd_targets(void)
 }
 
 
+bool parse_enable_or_disable(const char *s, bool *out) {
+	if (strlen(s) == 0) {
+		gdb_outf("'enable' or 'disable' argument must be provided\n");
+		return false;
+	} else if (!strncmp(s, "enable", strlen(s))) {
+		*out = true;
+		return true;
+	} else if (!strncmp(s, "disable", strlen(s))) {
+		*out = false;
+		return true;
+	} else {
+		gdb_outf("Argument '%s' not recognized as 'enable' or 'disable'\n", s);
+		return false;
+	}
+}
+
 
 #ifdef PLATFORM_HAS_DEBUG
 static bool cmd_debug_bmp(target *t, int argc, const char **argv)

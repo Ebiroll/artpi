@@ -24,10 +24,11 @@
 #include "gdb_packet.h"
 #include "gdb_main.h"
 #include "target.h"
-//#include "exception.h"
+#include "exception.h"
 #include "gdb_packet.h"
 //#include "morse.h"
 #include "stm32h7xx_hal.h"
+#include "platform.h"
 
 
 void platform_init(int argc, char **argv)
@@ -83,6 +84,19 @@ void platform_delay(uint32_t ms)
 	//vTaskDelayMs(ms);
 }
 
+void platform_timeout_set(platform_timeout *t, uint32_t ms)
+{
+	if (ms <= SYSTICKMS)
+		ms = SYSTICKMS;
+	t->time = platform_time_ms() + ms;
+}
+
+bool platform_timeout_is_expired(platform_timeout *t)
+{
+	return platform_time_ms() > t->time;
+}
+
+
 int platform_hwversion(void)
 {
 	return 0;
@@ -97,15 +111,15 @@ void main_task(void *parameters)
 
 	while (true) {
 
-               //volatile struct exception e;
-		       //TRY_CATCH(e, EXCEPTION_ALL) {
-		       gdb_main();
-		       //}
-		       //if (e.type) {
-		       //gdb_putpacketz("EFF");
-		       //target_list_free();
+               volatile t_exception  e;
+		       TRY_CATCH(e, EXCEPTION_ALL) {
+		         gdb_main();
+		       }
+		       if (e.type) {
+		         gdb_putpacketz("EFF");
+		         target_list_free();
 		       //morse("TARGET LOST.", 1);
-		       //}
+		       }
 	}
 
 	/* Should never get here */

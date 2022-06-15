@@ -96,6 +96,8 @@ struct target_s {
 	const char *tdesc;
 	void (*regs_read)(target *t, void *data);
 	void (*regs_write)(target *t, const void *data);
+	ssize_t (*reg_read)(target *t, int reg, void *data, size_t max);
+	ssize_t (*reg_write)(target *t, int reg, const void *data, size_t size);
 
 	/* Halt/resume functions */
 	void (*reset)(target *t);
@@ -111,6 +113,7 @@ struct target_s {
 
 	/* target-defined options */
 	unsigned target_options;
+	uint16_t t_designer;
 	uint32_t idcode;
 	void *target_storage;
 
@@ -122,12 +125,16 @@ struct target_s {
 
 	/* Other stuff */
 	const char *driver;
+	uint32_t cpuid;
+	char *core;
+	target_addr heapinfo[4];
 	struct target_command_s *commands;
 
 	struct target_s *next;
 
 	void *priv;
 	void (*priv_free)(void *);
+	
 };
 
 void target_add_commands(target *t, const struct command_s *cmds, const char *name);

@@ -44,8 +44,11 @@ Core/Src/stm32h7xx_hal_msp.c \
 ../../applications/gdb_packet.c \
 ../../applications/gdb_if_cdc.c \
 ../../applications/platform.c \
+../../applications/fake_adiv5.c \
+../../applications/exception.c \
 ../../applications/command.c \
 ../../applications/target/stm32h7_target.c \
+../../applications/target/cortexm.c \
 ../../applications/target.c \
 ../../applications/crc32.c \
 ../../applications/hex_utils.c \

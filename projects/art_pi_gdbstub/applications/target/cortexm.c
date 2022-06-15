@@ -36,7 +36,11 @@
 #include "command.h"
 #include "gdb_packet.h"
 
+#include "stm32h7_priv.h"
 //#include <unistd.h>
+#define STDIN_FILENO    0       /* Standard input.  */
+#define STDOUT_FILENO   1       /* Standard output.  */
+#define STDERR_FILENO   2       /* Standard error output.  */
 
 #if PC_HOSTED == 1
 
@@ -263,6 +267,8 @@ static void cortexm_priv_free(void *priv)
 	free(priv);
 }
 
+
+
 bool cortexm_probe(ADIv5_AP_t *ap)
 {
 	target *t;
@@ -325,10 +331,10 @@ bool cortexm_probe(ADIv5_AP_t *ap)
 	case CORTEX_M0:
 		t->core = "M0";
 		break;
-	default:
-		if (ap->ap_designer != AP_DESIGNER_ATMEL) /* Protected Atmel device?*/{
-			DEBUG_WARN("Unexpected CortexM CPUID partno %04" PRIx32 "\n", cpuid_partno);
-		}
+	//default:
+		//if (ap->ap_designer != AP_DESIGNER_ATMEL) /* Protected Atmel device?*/{
+		//	DEBUG_WARN("Unexpected CortexM CPUID partno %04" PRIx32 "\n", cpuid_partno);
+		//}
 	}
 	DEBUG_INFO("CPUID 0x%08" PRIx32 " (%s var %" PRIx32 " rev %" PRIx32 ")\n",
 			   t->cpuid,
@@ -378,6 +384,8 @@ bool cortexm_probe(ADIv5_AP_t *ap)
 	} else {
 		target_check_error(t);
 	}
+#if 0
+
 #define PROBE(x) \
 	do { if ((x)(t)) {return true;} else target_check_error(t); } while (0)
 
@@ -471,6 +479,9 @@ bool cortexm_probe(ADIv5_AP_t *ap)
 		PROBE(ke04_probe);
 		PROBE(lpc17xx_probe);
 	}
+
+#endif
+
 #undef PROBE
 	return true;
 }
@@ -564,6 +575,7 @@ enum { DB_DHCSR, DB_DCRSR, DB_DCRDR, DB_DEMCR };
 
 static void cortexm_regs_read(target *t, void *data)
 {
+#if 0
 	uint32_t *regs = data;
 	ADIv5_AP_t *ap = cortexm_ap(t);
 	unsigned i;
@@ -607,6 +619,7 @@ static void cortexm_regs_read(target *t, void *data)
 				*regs++ = adiv5_dp_read(ap->dp, ADIV5_AP_DB(DB_DCRDR));
 			}
 		}
+#endif
 }
 
 static void cortexm_regs_write(target *t, const void *data)
@@ -720,6 +733,7 @@ static void cortexm_pc_write(target *t, const uint32_t val)
  * using the core debug registers in the NVIC. */
 static void cortexm_reset(target *t)
 {
+#if 0
 	/* Read DHCSR here to clear S_RESET_ST bit before reset */
 	target_mem_read32(t, CORTEXM_DHCSR);
 	platform_timeout to;
@@ -757,11 +771,12 @@ static void cortexm_reset(target *t)
 	target_mem_write32(t, CORTEXM_DFSR, CORTEXM_DFSR_RESETALL);
 	/* Make sure we ignore any initial DAP error */
 	target_check_error(t);
+#endif
 }
 
 static void cortexm_halt_request(target *t)
 {
-	volatile struct exception e;
+	volatile struct bexception e;
 	TRY_CATCH (e, EXCEPTION_TIMEOUT) {
 		target_mem_write32(t, CORTEXM_DHCSR, CORTEXM_DHCSR_DBGKEY |
 		                                          CORTEXM_DHCSR_C_HALT |
@@ -777,7 +792,7 @@ static enum target_halt_reason cortexm_halt_poll(target *t, target_addr *watch)
 	struct cortexm_priv *priv = t->priv;
 
 	volatile uint32_t dhcsr = 0;
-	volatile struct exception e;
+	volatile struct bexception e;
 	TRY_CATCH (e, EXCEPTION_ALL) {
 		/* If this times out because the target is in WFI then
 		 * the target is still running. */
@@ -1619,6 +1634,7 @@ static int cortexm_hostio_request(target *t)
 		break;
 
 	case SYS_GET_CMDLINE: { /* get_cmdline */
+#if 0
 		uint32_t retval[2];
 		ret = -1;
 		target_addr buf_ptr = params[0];
@@ -1629,6 +1645,7 @@ static int cortexm_hostio_request(target *t)
 		retval[1] = strlen(t->cmdline)+1;
 		if(target_mem_write(t, arm_regs[1], retval, sizeof(retval))) break;
 		ret = 0;
+#endif
 		break;
 		}
 
@@ -1637,7 +1654,7 @@ static int cortexm_hostio_request(target *t)
 		ret = (errorNo == TARGET_EPERM) ||
 			  (errorNo == TARGET_ENOENT) ||
 			  (errorNo == TARGET_EINTR) ||
-			  (errorNo == TARGET_EIO) ||
+//			  (errorNo == TARGET_EIO) ||
 			  (errorNo == TARGET_EBADF) ||
 			  (errorNo == TARGET_EACCES) ||
 			  (errorNo == TARGET_EFAULT) ||
@@ -1653,9 +1670,9 @@ static int cortexm_hostio_request(target *t)
 			  (errorNo == TARGET_ENOSPC) ||
 			  (errorNo == TARGET_ESPIPE) ||
 			  (errorNo == TARGET_EROFS) ||
-			  (errorNo == TARGET_ENOSYS) ||
-			  (errorNo == TARGET_ENAMETOOLONG) ||
-			  (errorNo == TARGET_EUNKNOWN);
+//			  (errorNo == TARGET_ENOSYS) ||
+			  (errorNo == TARGET_ENAMETOOLONG);
+//			  || (errorNo == TARGET_EUNKNOWN);
 		break;
 		}
 

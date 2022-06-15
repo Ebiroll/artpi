@@ -29,10 +29,13 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <inttypes.h>
+#include "platform.h"
 
 #ifndef DEBUG
 #include <stdio.h>
 #define DEBUG_BM    printf
+#else 
+#define DEBUG_BM
 #endif
 
 #define ALIGN(x, n) (((x) + (n) - 1) & ~((n) - 1))

@@ -270,6 +270,7 @@ static void stm32h7_detach(target *t)
 
 bool stm32h7_probe(target *t)
 {
+	cortexm_probe(t);
 	uint32_t idcode = t->idcode;
 	if (idcode == ID_STM32H74x || idcode == ID_STM32H7Bx || idcode == ID_STM32H72x) {
 		t->driver = stm32h7_driver_str;
@@ -336,9 +337,13 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	t->mem_read = h7_mem_read;
 	t->mem_write = h7_mem_write;
 
+	// Force id for use with qemu
+	t->idcode=0x450;
+
     t->driver = stm32h7_driver_str;
 
     target_check_error(t);
+	stm32h7_probe(t);
 
     target_attach(t,controller);
 

@@ -21,6 +21,17 @@
 #ifndef __PLATFORM_H
 #define __PLATFORM_H
 
+struct platform_timeout {
+	uint32_t time;
+};
+
+
+typedef struct platform_timeout platform_timeout;
+void platform_timeout_set(platform_timeout *t, uint32_t ms);
+bool platform_timeout_is_expired(platform_timeout *t);
+void platform_delay(uint32_t ms);
+
+
 #define NO_USB_PLEASE
 
 #define SET_RUN_STATE(state)
