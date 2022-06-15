@@ -38,6 +38,316 @@
 #include "cortexm.h"
 #include "stm32h7_priv.h"
 
+///////////////////////////// Teensy debug functions ///////////////////////////
+
+#define IRQ_SOFTWARE	10
+
+// breakpoint handler pointer
+void (*callback)() = NULL;
+
+// Counter for debugging; counts number of breakpoint calls
+int debugcount = 0;
+
+// Debug system is enabled?
+int debugenabled = 0;
+
+// Are we in a breakpoint or step instruction?
+int debugstep = 0;
+
+// Restore registers before returning?
+int debugrestore = 0;
+
+// Pretty names for breakpoint and fault types
+const char *hard_fault_debug_text[] = {
+  "debug", "break", "nmi", "hard", "mem", "bus", "usage"
+};
+
+// The interrupt call
+// 0 = breakpoint
+// 1 = nmi
+// 2 = hard fault, etc.
+uint32_t debug_id = 0;
+
+// Debug tracing - not used by code
+int debug_trace = 0;
+
+// Copy of the registers at breakpoint
+struct save_registers_struct {
+  uint32_t r0;
+  uint32_t r1;
+  uint32_t r2;
+  uint32_t r3;
+  uint32_t r12;
+  uint32_t lr;
+  uint32_t pc;
+  uint32_t xPSR;
+
+  uint32_t r4;
+  uint32_t r5;
+  uint32_t r6;
+  uint32_t r7;
+  uint32_t r8;
+  uint32_t r9;
+  uint32_t r10;
+  uint32_t r11;
+  uint32_t sp;
+} save_registers;
+
+// Structure of ISR stack
+struct stack_isr {
+  uint32_t r0;
+  uint32_t r1;
+  uint32_t r2;
+  uint32_t r3;
+  uint32_t r12;
+  uint32_t lr;
+  uint32_t pc;
+  uint32_t xPSR;
+};
+// Live pointer to stack of ISR. We use this to modify the
+// return address and other things
+struct stack_isr *stack;
+
+/**
+ * @brief Macros to save/restore registers from stack
+ * 
+ */
+#define SAVE_STACK \
+    "ldr r0, =stack \n" \
+    "str sp, [r0] \n"
+
+// Save registers within an interrupt. Changes R0 register
+#define SAVE_REGISTERS \
+    "ldr r0, =stack \n" \
+    "ldr r1, [r0] \n " \
+    "ldr r0, =save_registers \n" \
+    "ldr r2, [r1, #0] \n" \
+    "str r2, [r0, #0] \n" \
+    "ldr r2, [r1, #4] \n" \
+    "str r2, [r0, #4] \n" \
+    "ldr r2, [r1, #8] \n" \
+    "str r2, [r0, #8] \n" \
+    "ldr r2, [r1, #12] \n" \
+    "str r2, [r0, #12] \n" \
+    "ldr r2, [r1, #16] \n" \
+    "str r2, [r0, #16] \n" \
+    \
+    "ldr r2, [r1, #20] \n" \
+    "str r2, [r0, #20] \n" \
+    "ldr r2, [r1, #24] \n" \
+    "str r2, [r0, #24] \n" \
+    "ldr r2, [r1, #28] \n" \
+    "str r2, [r0, #28] \n" \
+    \
+    "str r4, [r0, #32] \n" \
+    "str r5, [r0, #36] \n" \
+    "str r6, [r0, #40] \n" \
+    "str r7, [r0, #44] \n" \
+    "str r8, [r0, #48] \n" \
+    "str r9, [r0, #52] \n" \
+    "str r10, [r0, #56] \n" \
+    "str r11, [r0, #60] \n" \
+    "str r1, [r0, #64] \n"
+
+// Restore all registers except SP
+#define RESTORE_REGISTERS \
+    "ldr r0, =stack \n" \
+    "ldr r1, [r0] \n " \
+    "ldr r0, =save_registers \n" \
+    "ldr r2, [r0, #0] \n" \
+    "str r2, [r1, #0] \n" \
+    "ldr r2, [r0, #4] \n" \
+    "str r2, [r1, #4] \n" \
+    "ldr r2, [r0, #8] \n" \
+    "str r2, [r1, #8] \n" \
+    "ldr r2, [r0, #12] \n" \
+    "str r2, [r1, #12] \n" \
+    "ldr r2, [r0, #16] \n" \
+    "str r2, [r1, #16] \n" \
+    \
+    "ldr r2, [r0, #20] \n" \
+    "str r2, [r1, #20] \n" \
+    "ldr r2, [r0, #24] \n" \
+    "str r2, [r1, #24] \n" \
+    "ldr r2, [r0, #28] \n" \
+    "str r2, [r1, #28] \n" \
+    \
+    "ldr r4, [r0, #32] \n" \
+    "ldr r5, [r0, #36] \n" \
+    "ldr r6, [r0, #40] \n" \
+    "ldr r7, [r0, #44] \n" \
+    "ldr r8, [r0, #48] \n" \
+    "ldr r9, [r0, #52] \n" \
+    "ldr r10, [r0, #56] \n" \
+    "ldr r11, [r0, #60] \n"
+
+void (*original_software_isr)() = NULL;
+void (*original_svc_isr)() = NULL;
+
+
+/**
+ * @brief Called by software interrupt. Perform chaining or
+ * call handler.
+ * 
+ */
+__attribute__((noinline, naked))
+void debug_call_isr() {
+  __disable_irq();
+  asm volatile(SAVE_STACK);
+  asm volatile(SAVE_REGISTERS);
+  __enable_irq();
+  asm volatile("push {lr}");
+  NVIC_CLEAR_PENDING(IRQ_SOFTWARE);
+
+  // Are we in debug mode? If not, just jump to original ISR
+  if (debugenabled == 0) {
+#if 1
+    if (original_software_isr) {
+      // asm volatile("ldr r0, =original_software_isr");
+      // asm volatile("ldr r0, [r0]");
+      // asm volatile("mov pc, r0");
+      asm volatile("pop {lr}");
+      asm volatile("mov pc, %0" : : "r" (original_software_isr));
+    }
+#endif
+    return;
+  }
+
+  if (debugenabled == 2) { // halt permenantly
+    while(1) { yield(); }
+  }
+
+  debug_monitor();              // process the debug event
+  debugenabled = 0;
+  // Serial.print("restore regs=");Serial.println(debugrestore);
+
+  // restore registers if they have been changed by gdb
+  if (debugrestore) {
+    debugrestore = 0;
+    asm volatile("pop {r12}");
+    __disable_irq();
+    asm volatile(RESTORE_REGISTERS);
+    __enable_irq();
+    asm volatile("mov lr, r12");
+    asm volatile("bx lr");
+  }
+  else {
+    asm volatile("pop {pc}");
+  }
+}
+
+/**
+ * @brief Called by SVC ISR to trigger software interrupt
+ * 
+ */
+void debug_call_isr_setup() {
+  debugcount++;
+  debugenabled = 1;
+  // process in lower priority so services can keep running
+  NVIC_SET_PENDING(IRQ_SOFTWARE); 
+}
+
+#if 1
+uint32_t lastpc;
+
+int testOurSVC() {
+  uint16_t *memory = (uint16_t*)(lastpc);
+  if (((*memory) & 0xFFF0) == 0xdf10 || debug_isBreakpoint(memory)) {
+    return 1;
+  }
+  return 0;
+}
+#endif
+
+/**
+ * @brief SVC handler. Save registers and handle breakpoint.
+ * 
+ */
+__attribute__((noinline, naked))
+void svcall_isr() {
+#if 1
+  // get the PC that triggered this
+  // subtract width of svc instruction (which is 2)
+  // is it one of our svcs?
+  asm volatile(
+    "ldr r0, [sp, #24] \n"
+    "sub r0, #2 \n"
+    "ldr r1, =lastpc \n"
+    "str r0, [r1] \n"
+    "push {lr}"
+  );
+  if (testOurSVC()) {
+    debug_call_isr_setup();
+    asm volatile("pop {pc}");
+  }
+  else {
+    if (original_svc_isr) {
+      asm volatile("pop {lr}");
+      asm volatile("mov pc, %0" : : "r" (original_svc_isr));
+    }
+    asm volatile("pop {pc}");
+  }
+#else
+  asm volatile("push {lr}");
+  debug_call_isr_setup();
+  asm volatile("pop {pc}");
+#endif
+}
+
+/**
+ * @brief Table used by FP_MAP to map memory to breakpoints. This will
+ * get copied to RAM and serve as reference. Probably not really needed.
+ * 
+ */
+__attribute__((naked))
+void svc_call_table() {
+  asm volatile(
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+    "svc #0x10 \n"
+    "nop \n"
+ );  
+}
+
+///////////////////////////// End teensy debug functions ///////////////////////////
+/**
+  * @brief This function handles System service call via SWI instruction.
+  */
+void SVC_Handler(void)
+{
+  /* USER CODE BEGIN SVCall_IRQn 0 */
+
+  /* USER CODE END SVCall_IRQn 0 */
+  /* USER CODE BEGIN SVCall_IRQn 1 */
+
+  /* USER CODE END SVCall_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Debug monitor.
+  */
+void DebugMon_Handler(void)
+{
+  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+
+  /* USER CODE END DebugMonitor_IRQn 0 */
+  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+
+  /* USER CODE END DebugMonitor_IRQn 1 */
+}
+
+//////////////////////////////////////////////////////////
+
 
 static bool stm32h7_cmd_erase_mass(target *t, int argc, const char **argv);
 /* static bool stm32h7_cmd_option(target *t, int argc, char *argv[]); */

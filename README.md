@@ -823,6 +823,7 @@ You can learn more about
 https://linux-kernel-labs.github.io/refs/heads/master/so2/lab11-arm-kernel-development.html
 
 
+
 sw context:
 - as stm32h750 just has 128k bytes internal flash, so running a fw on
   internal flash to download u-boot/kernel to qspi flash, boot
@@ -1049,6 +1050,8 @@ https://balau82.wordpress.com/2010/04/12/booting-linux-with-u-boot-on-qemu-arm/
 https://github.com/chcbaram/ART-Pi
 
 https://wiki.st.com/stm32mpu/wiki/Debugging_the_Linux_kernel_using_the_GDB
+
+https://www.st.com/resource/en/reference_manual/dm00314099-stm32h742-stm32h743-753-and-stm32h750-value-line-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf
 
 
 https://www.emcraft.com/stm32f769i-discovery-board/installing-uboot-to-stm32f7-discovery-board
