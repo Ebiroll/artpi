@@ -460,6 +460,7 @@ dm_init_and_scan()
 
       Starting kernel ...
 
+```
       [    0.000000] Booting Linux on physical CPU 0x0
 [    0.000000] Linux version 5.12.0-rc2-28712-gbce82a062e70-dirty (fmin@fmin-OptiPlex-7060) (arm-none-eabi-gcc (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.2.1 20201103 (release), GNU ld (GNU Arm Embedded Toolchain 10-2020-q4-major) 2.35.1.20201028) #455 PREEMPT Fri Mar 12 13:39:49 CST 2021
 [    0.000000] CPU: ARMv7-M [411fc272] revision 2 (ARMv7M), cr=00000000
@@ -562,7 +563,7 @@ dm_init_and_scan()
 [  524.392800] stm32-usart 40004c00.serial: interrupt mode used for rx (no dma)
 [  524.520624] stm32-usart 40004c00.serial: tx dma alloc failed
 [  524.568832] stm32-usart 40004c00.serial: interrupt mode used for tx (no dma)
-
+```
 
 # compared to real hardware boot.
 
