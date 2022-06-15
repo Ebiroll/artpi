@@ -320,6 +320,24 @@ void svc_call_table() {
 }
 
 ///////////////////////////// End teensy debug functions ///////////////////////////
+
+/**
+  * @brief This function handles Hard fault interrupt.
+  */
+void HardFault_Handler(void)
+{
+  /* USER CODE BEGIN HardFault_IRQn 0 */
+  // Send info 
+
+  /* USER CODE END HardFault_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    /* USER CODE END W1_HardFault_IRQn 0 */
+  }
+}
+
+
 /**
   * @brief This function handles System service call via SWI instruction.
   */
@@ -328,6 +346,13 @@ void SVC_Handler(void)
   /* USER CODE BEGIN SVCall_IRQn 0 */
 
   /* USER CODE END SVCall_IRQn 0 */
+
+    //__disable_irq();
+	asm volatile(SAVE_STACK);
+	asm volatile(SAVE_REGISTERS);
+	//__enable_irq();
+
+
   /* USER CODE BEGIN SVCall_IRQn 1 */
 
   /* USER CODE END SVCall_IRQn 1 */
@@ -676,6 +701,12 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	t->mem_write = h7_mem_write;
 
     target_attach(t,controller);
+
+// Test
+ asm volatile(
+    "svc #0x10 \n"
+    "nop \n");
+
 
 }
 
