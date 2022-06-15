@@ -28,7 +28,8 @@ static char chsum;						//Running checksum of the output packet
 
 // Buffer to communicate with GDB
 uint8_t gdb_buffer[64];
-uint8_t send_buffer[64];
+#define SEND_BUFF_LEN 256
+uint8_t send_buffer[SEND_BUFF_LEN];
 
 int read_pos=0;
 int read_len=0;
@@ -51,7 +52,7 @@ int ATTR_GDBFN gdbRecvChar() {
 
 //Send a char to the uart.
 void ATTR_GDBFN gdbSendChar(char c) {
-    if (send_len<64) {
+    if (send_len<SEND_BUFF_LEN) {
         send_buffer[send_len] = c;
         send_len++;
     } else

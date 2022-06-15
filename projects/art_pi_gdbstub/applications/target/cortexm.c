@@ -382,7 +382,8 @@ bool cortexm_probe(ADIv5_AP_t *ap)
 		priv->has_cache = true;
 		priv->dcache_minline = 4 << (ctr & 0xf);
 	} else {
-		target_check_error(t);
+		// TODO, add
+		//target_check_error(t);
 	}
 #if 0
 

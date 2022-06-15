@@ -323,6 +323,20 @@ static void h7_priv_free(void *priv)
 	free(priv);
 }
 
+static void h7_halt_request(target *t)
+{
+	target_mem_write32(t, CORTEXM_DHCSR, CORTEXM_DHCSR_DBGKEY |
+												CORTEXM_DHCSR_C_HALT |
+												CORTEXM_DHCSR_C_DEBUGEN);
+}
+
+
+//static bool adi_check_error(ADIv5_AP_s *a)
+//{
+//	return false;
+//}
+
+
 
 target *stm32h7_probe_with_controller(struct target_controller *controller)
 {
@@ -330,12 +344,14 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 
 	t = target_new();
 	struct ADIv5_AP_s *priv = calloc(1, sizeof(*priv));
+	// priv->error=adi_check_error;
 	t->priv = priv;
 
 	t->priv_free = h7_priv_free;
 	t->check_error = h7_check_error;
 	t->mem_read = h7_mem_read;
 	t->mem_write = h7_mem_write;
+	t->halt_request = h7_halt_request;
 
 	// Force id for use with qemu
 	t->idcode=0x450;
@@ -344,6 +360,10 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 
     target_check_error(t);
 	stm32h7_probe(t);
+
+	// Back to default
+	t->mem_read = h7_mem_read;
+	t->mem_write = h7_mem_write;
 
     target_attach(t,controller);
 

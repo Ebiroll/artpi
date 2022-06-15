@@ -631,6 +631,12 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("FPU",0xe000ef34,0xd);
     create_unimplemented_device("AC",0xe000ef90,0x1d);
 
+    create_unimplemented_device("USB OTG HS",  0x40040000, 0x30000);
+    create_unimplemented_device("USB FS GLO",  0x40080000, 0x30000);
+
+    create_unimplemented_device("USB OTG FS",  0x50000000, 0x31000);
+
+
 /*
     create_unimplemented_device("WWDG",        0x40002C00, 0x400);
     create_unimplemented_device("IWDG",        0x40003000, 0x400);
@@ -665,8 +671,6 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("DMA1",        0x40026000, 0x400);
     create_unimplemented_device("DMA2",        0x40026400, 0x400);
     create_unimplemented_device("Ethernet",    0x40028000, 0x1400);
-    create_unimplemented_device("USB OTG HS",  0x40040000, 0x30000);
-    create_unimplemented_device("USB OTG FS",  0x50000000, 0x31000);
     create_unimplemented_device("DCMI",        0x48020000, 0x400);
     create_unimplemented_device("RNG",         0x50060800, 0x400);
     create_unimplemented_device("SCB",         0xe000ed00, 0x41);
