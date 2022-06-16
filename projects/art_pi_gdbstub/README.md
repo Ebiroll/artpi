@@ -1,16 +1,25 @@
 # Gdbstub
 Work in progress.
-The Idea was to access memory to make dump of the flash
+The Idea was to access memory to make dump of the flash and use the gdb protocol.
+Then I saw this program and got a bit carried away.
 
 https://github.com/ftrias/TeensyDebug
 
 
 https://www-zeuthen.desy.de/dv/documentation/unixguide/infohtml/gdb/Thread-List-Format.html
 
+As the project uses blackmagic codebase, some commands will just lock up the board.
+blackmagic assumes you access the DP via JTAG or SWD and writes to the DAP (Debug access port).
+Currently, generic cortexm target commands are used as a starting point of the project but will be replaced by the Debug monitor ISR commands.
 
-For the future, another UART can be used when running programs from the external flash.
-This way we do not interfer with the debug UART4.
+# Debug monitor.
 
+https://interrupt.memfault.com/blog/cortex-m-debug-monitor
+
+https://github.com/adamgreen/mri
+
+
+# gdb protocol
 
 Basic gdb-stub frame
 ``` 

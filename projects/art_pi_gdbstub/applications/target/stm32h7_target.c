@@ -37,6 +37,8 @@
 #include "target_internal.h"
 #include "cortexm.h"
 #include "stm32h7_priv.h"
+#include "stm32h7xx_hal.h"
+#include "gdb_main.h"
 
 ///////////////////////////// Teensy debug functions ///////////////////////////
 
@@ -50,9 +52,6 @@ int debugcount = 0;
 
 // Debug system is enabled?
 int debugenabled = 0;
-
-// Are we in a breakpoint or step instruction?
-int debugstep = 0;
 
 // Restore registers before returning?
 int debugrestore = 0;
@@ -92,6 +91,8 @@ struct save_registers_struct {
   uint32_t r11;
   uint32_t sp;
 } save_registers;
+
+GdbRegFile gdb_regfile;
 
 // Structure of ISR stack
 struct stack_isr {
@@ -347,10 +348,10 @@ void SVC_Handler(void)
 
   /* USER CODE END SVCall_IRQn 0 */
 
-    //__disable_irq();
+    __disable_irq();
 	asm volatile(SAVE_STACK);
 	asm volatile(SAVE_REGISTERS);
-	//__enable_irq();
+	__enable_irq();
 
 
   /* USER CODE BEGIN SVCall_IRQn 1 */
@@ -374,6 +375,32 @@ void DebugMon_Handler(void)
 //////////////////////////////////////////////////////////
 
 
+void stm32h7_regs_read(target *t, void *data) {
+	// Reorganize
+	gdb_regfile.r0 = save_registers.r0;
+	gdb_regfile.r1 = save_registers.r1;
+	gdb_regfile.r2 = save_registers.r2;
+	gdb_regfile.r3 = save_registers.r3;
+	gdb_regfile.r4 = save_registers.r4;
+	gdb_regfile.r5 = save_registers.r5;
+	gdb_regfile.r6 = save_registers.r6;
+	gdb_regfile.r7 = save_registers.r7;
+	gdb_regfile.r8 = save_registers.r8;
+	gdb_regfile.r9 = save_registers.r9;
+	gdb_regfile.r10 = save_registers.r10;
+	gdb_regfile.r11 = save_registers.r11;
+	gdb_regfile.r12 = save_registers.r12;
+	gdb_regfile.sp = save_registers.sp;
+	gdb_regfile.lr = save_registers.lr;
+	gdb_regfile.pc = save_registers.pc;
+	gdb_regfile.xpsr = save_registers.xPSR;
+    gdb_regfile.fpscr = 0xdeadbeef;
+
+	int *p=(int*)&gdb_regfile.r0;
+	memcpy(data,p,sizeof(GdbRegFile));
+
+}
+
 static bool stm32h7_cmd_erase_mass(target *t, int argc, const char **argv);
 /* static bool stm32h7_cmd_option(target *t, int argc, char *argv[]); */
 static bool stm32h7_uid(target *t, int argc, const char **argv);
@@ -381,9 +408,56 @@ static bool stm32h7_crc(target *t, int argc, const char **argv);
 static bool stm32h7_cmd_psize(target *t, int argc, char *argv[]);
 static bool stm32h7_cmd_rev(target *t, int argc, const char **argv);
 
+// Not sure if this works, or is useful
+void stm32h7_jump_boot_loader(void)
+{
+  uint32_t i=0;
+  void (*SysMemBootJump)(void);
+ 
+  /* Set the address of the entry point to bootloader */
+     volatile uint32_t BootAddr = 0x1FF09800;
+ 
+  /* Disable all interrupts */
+     __disable_irq();
+
+  /* Disable Systick timer */
+     SysTick->CTRL = 0;
+	 
+  /* Set the clock to the default state */
+     HAL_RCC_DeInit();
+
+  /* Clear Interrupt Enable Register & Interrupt Pending Register */
+     for (i=0;i<5;i++)
+     {
+	  NVIC->ICER[i]=0xFFFFFFFF;
+	  NVIC->ICPR[i]=0xFFFFFFFF;
+     }	
+	 
+  /* Re-enable all interrupts */
+     __enable_irq();
+	
+  /* Set up the jump to booloader address + 4 */
+     SysMemBootJump = (void (*)(void)) (*((uint32_t *) ((BootAddr + 4))));
+ 
+  /* Set the main stack pointer to the bootloader stack */
+     __set_MSP(*(uint32_t *)BootAddr);
+ 
+  /* Call the function to jump to bootloader location */
+     SysMemBootJump(); 
+  
+  /* Jump is done successfully */
+     while (1)
+     {
+      /* Code should never reach this loop */
+     }
+}
+
+
 const struct command_s stm32h7_cmd_list[] = {
 	{"erase_mass", (cmd_handler)stm32h7_cmd_erase_mass,
 	 "Erase entire flash memory"},
+	{"boot_loader", (cmd_handler)stm32h7_jump_boot_loader,
+	 "Jump to bootloader"},
 /*	{"option", (cmd_handler)stm32h7_cmd_option,
 	"Manipulate option bytes"},*/
 	{"psize", (cmd_handler)stm32h7_cmd_psize,
@@ -455,6 +529,41 @@ enum stm32h7_regs
 #define H7_IWDG_BASE        0x58004c00
 #define FPEC1_BASE			0x52002000
 #define FPEC2_BASE			0x52002100
+
+// Also defiend in HAL file
+
+#undef FLASH_SR_BSY	
+#undef FLASH_SR_WBNE		
+#undef FLASH_SR_QW			
+#undef FLASH_SR_CRC_BUSY
+#undef FLASH_SR_EOP		
+#undef FLASH_SR_WRPERR		
+#undef FLASH_SR_PGSERR		
+#undef FLASH_SR_STRBERR
+#undef FLASH_SR_INCERR		
+#undef FLASH_SR_OPERR		
+#undef FLASH_SR_OPERR		
+#undef FLASH_SR_RDPERR		
+#undef FLASH_SR_RDSERR		
+#undef FLASH_SR_SNECCERR	
+#undef FLASH_SR_DBERRERR	
+
+#undef FLASH_CR_LOCK		
+#undef FLASH_CR_PG			
+#undef FLASH_CR_SER	
+#undef FLASH_CR_BER		
+#undef FLASH_CR_PSIZE8		
+#undef FLASH_CR_PSIZE16	
+#undef FLASH_CR_PSIZE32	
+#undef FLASH_CR_PSIZE64	
+#undef FLASH_CR_FW			
+#undef FLASH_CR_START	
+#undef FLASH_CR_SNB_1		
+#undef FLASH_CR_SNB		
+#undef FLASH_CR_CRC_EN		
+
+
+
 #define FLASH_SR_BSY		(1 <<  0)
 #define FLASH_SR_WBNE		(1 <<  1)
 #define FLASH_SR_QW			(1 <<  2)
@@ -494,16 +603,25 @@ enum stm32h7_regs
 
 #define FLASH_OPTSR_IWDG1_SW	(1 <<  4)
 
+
 #define FLASH_CRCCR_ALL_BANK	(1 <<  7)
 #define FLASH_CRCCR_START_CRC	(1 << 16)
 #define FLASH_CRCCR_CLEAN_CRC	(1 << 17)
 #define FLASH_CRCCR_CRC_BURST_3	(3 << 20)
+
+#if 0
+
+#endif
+
 
 #define KEY1 0x45670123
 #define KEY2 0xCDEF89AB
 
 #define OPTKEY1 0x08192A3B
 #define OPTKEY2 0x4C5D6E7F
+
+
+
 
 #define DBGMCU_IDCODE	0x5c001000
 /* Access from processor address space.
@@ -699,6 +817,7 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	// Back to default
 	t->mem_read = h7_mem_read;
 	t->mem_write = h7_mem_write;
+	t->regs_read=stm32h7_regs_read;
 
     target_attach(t,controller);
 
