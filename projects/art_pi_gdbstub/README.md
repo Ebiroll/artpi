@@ -20,6 +20,10 @@ If you are using GDB over ST-link, Halting Mode debug can be disabled manually b
 
 This can also be a useful way to keep an active GDB session open and probe its state while the system is running!
 
+# More reasonable approach
+
+Access the Debug Access Port (DAP) via JTAG or SWD.
+https://interrupt.memfault.com/blog/a-deep-dive-into-arm-cortex-m-debug-interfaces
 # Interesting article for x86
 
 https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/
