@@ -607,3 +607,7 @@ void gdb_main(void)
 	gdb_main_loop(&gdb_controller, false);
 }
 
+void process_chars_from_isr() {
+	// Pull one command from the GDB packet buffer and process it
+	// gdb_main_loop(&gdb_controller, false);
+}

@@ -245,6 +245,8 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* USER CODE END 5 */
 }
 
+extern void process_chars_from_isr();
+
 /**
   * @brief  Data received over USB OUT endpoint are sent over CDC interface
   *         through this function.
@@ -272,6 +274,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   memset(Buf, '\0', len);   // clear the Buf also
   read_len=len;
   read_pos=0;
+  process_chars_from_isr();
   return (USBD_OK);
   /* USER CODE END 6 */
 }
