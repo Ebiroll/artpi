@@ -12,6 +12,18 @@ As the project uses blackmagic codebase, some commands will just lock up the boa
 blackmagic assumes you access the DP via JTAG or SWD and writes to the DAP (Debug access port).
 Currently, generic cortexm target commands are used as a starting point of the project but will be replaced by the Debug monitor ISR commands.
 
+
+# TIP: Disabling Halting Debug from GDB
+If you are using GDB over ST-link, Halting Mode debug can be disabled manually by clearing C_DEBUGEN and setting the appropriate value for DBGKEY (0xA05F):
+
+   (gdb) set *(uint32_t*)0xE000EDF0=(0xA05F<<16)
+
+This can also be a useful way to keep an active GDB session open and probe its state while the system is running!
+
+# Interesting article for x86
+
+https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/
+
 # Debug monitor.
 
 https://interrupt.memfault.com/blog/cortex-m-debug-monitor

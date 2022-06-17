@@ -39,6 +39,27 @@
 #include "stm32h7_priv.h"
 #include "stm32h7xx_hal.h"
 #include "gdb_main.h"
+///////////////////////////////////////////////////////////
+
+#define FP_CTRL  (*(uint32_t*)0xE0002000)
+#define FP_REMAP (*(uint32_t*)0xE0002004)
+#define FP_COMP(n) (((uint32_t*)0xE0002008)[n])
+#define FP_COMP0 (*(uint32_t*)0xE0002008)
+#define FP_COMP1 (*(uint32_t*)0xE000200C)
+#define FP_COMP2 (*(uint32_t*)0xE0002010)
+#define FP_COMP3 (*(uint32_t*)0xE0002014)
+#define FP_COMP4 (*(uint32_t*)0xE0002018)
+#define FP_COMP5 (*(uint32_t*)0xE000201C)
+#define FP_COMP6 (*(uint32_t*)0xE0002020)
+#define FP_COMP7 (*(uint32_t*)0xE0002024)
+#define FP_COMP_MASK  0x1FFFFFFC
+#define FP_REMAP_MASK 0x1FFFFFF0
+#define FP_REMAP_RMPSPT (1<<29)
+
+#define FP_LAR_UNLOCK_KEY 0xC5ACCE55
+#define FP_LAR   (*(unsigned int*) 0xE0000FB0)
+#define FP_LSR   (*(unsigned int*) 0xE0000FB4)
+
 
 ///////////////////////////// Teensy debug functions ///////////////////////////
 
@@ -359,20 +380,96 @@ void SVC_Handler(void)
   /* USER CODE END SVCall_IRQn 1 */
 }
 
+
+typedef struct __attribute__((packed)) ContextStateFrame {
+  uint32_t r0;
+  uint32_t r1;
+  uint32_t r2;
+  uint32_t r3;
+  uint32_t r12;
+  uint32_t lr;
+  uint32_t return_address;
+  uint32_t xpsr;
+} sContextStateFrame;
+
+
+// DWTTRAP Indicates the a debug event was generated due to a configuration in the DWT.
+// BKPT Indicates one or more breakpoint event took place (either via the FPB or a BKPT instruction).
+// HALTED Indicates the core was halted due to a MON_STEP request.
+void debug_monitor_handler_c(sContextStateFrame *frame) {
+  volatile uint32_t *demcr = (uint32_t *)0xE000EDFC;
+
+  volatile uint32_t *dfsr = (uint32_t *)0xE000ED30;
+  const uint32_t dfsr_dwt_evt_bitmask = (1 << 2);
+  const uint32_t dfsr_bkpt_evt_bitmask = (1 << 1);
+  const uint32_t dfsr_halt_evt_bitmask = (1 << 0);
+  const bool is_dwt_dbg_evt = (*dfsr & dfsr_dwt_evt_bitmask);
+  const bool is_bkpt_dbg_evt = (*dfsr & dfsr_bkpt_evt_bitmask);
+  const bool is_halt_dbg_evt = (*dfsr & dfsr_halt_evt_bitmask);
+}
+
 /**
   * @brief This function handles Debug monitor.
   */
-void DebugMon_Handler(void)
-{
-  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
-
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
-
-  /* USER CODE END DebugMonitor_IRQn 1 */
+__attribute__((naked))
+void DebugMon_Handler(void) {
+  __asm volatile(
+      "tst lr, #4 \n"
+      "ite eq \n"
+      "mrseq r0, msp \n"
+      "mrsne r0, psp \n"
+      "b debug_monitor_handler_c \n");
 }
 
+// https://interrupt.memfault.com/blog/cortex-m-breakpoints#flash-patch--breakpoint-unit
+// Flash patch 
+bool fpb_set_breakpoint(size_t comp_id, uint32_t instr_addr) {
+  if (instr_addr >= 0x20000000) {
+    // for revision 1 only breakpoints in code can be installed :/
+    return false;
+  }
+  // make sure the FPB is enabled
+  FP_CTRL |= 0x3;
+
+  const uint32_t replace = (instr_addr & 0x2) == 0 ? 1 : 2;
+  const uint32_t fp_comp = (instr_addr & ~0x3) | 0x1 | (replace << 30);
+  FP_COMP(comp_id) = fp_comp;
+  return true;
+}
+
+
+
 //////////////////////////////////////////////////////////
+
+bool debug_monitor_enable(target *t) {
+  volatile uint32_t *dhcsr = (uint32_t*)0xE000EDF0;
+  if ((*dhcsr & 0x1) != 0) {
+    tc_printf(t,"Halting Debug Enabled - "
+                "Can't Enable Monitor Mode Debug!");
+    return false;
+  }
+
+  //  ARM CoreSight Architecture Specification.
+  FP_LAR = FP_LAR_UNLOCK_KEY; // doesn't do anything, but might in some other processors
+
+
+
+  volatile uint32_t *demcr = (uint32_t*)0xE000EDFC;
+  const uint32_t mon_en_bit = 16;
+  *demcr |= 1 << mon_en_bit;
+
+  // Priority for DebugMonitor Exception is bits[7:0].
+  // We will use the lowest priority so other ISRs can
+  // fire while in the DebugMonitor Interrupt
+  volatile uint32_t *shpr3 = (uint32_t *)0xE000ED20;
+  *shpr3 = 0xff;
+
+  //tc_printf(t,"Monitor Mode Debug Enabled!");
+  return true;
+}
+
+
+
 
 
 void stm32h7_regs_read(target *t, void *data) {
