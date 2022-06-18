@@ -3,6 +3,20 @@ Work in progress.
 The Idea was to access memory to make dump of the flash and use the gdb protocol.
 Then I saw this program and got a bit carried away.
 
+If it had worked you could dump memory with,
+   (gdb) target remote /dev/ttyACM1
+
+   (gdb) dump binary memory eflash.bin 0x90000000 0x90080000
+
+   (gdb) dump binary memory boot_flash.bin 0x08000000 0x08001000
+
+
+I would not trust the results yet, but the code can be consider educational.
+More attention must be given to the
+h7_mem_read() function.
+It works well for 32-bits len=4 and aligned addresses 
+
+
 https://github.com/ftrias/TeensyDebug
 
 
@@ -60,6 +74,7 @@ Interesting gdb commands
 (gdb) info threads
 (gdb) monitor help
 (gdb) set debug protocol 5
+(gdb) set debug serial 5
 
 Not so useful
 (gdb) set debug target 1

@@ -27,7 +27,7 @@ static char chsum;						//Running checksum of the output packet
 
 
 // Buffer to communicate with GDB
-uint8_t gdb_buffer[64];
+uint8_t gdb_buffer[256];
 #define SEND_BUFF_LEN 256
 uint8_t send_buffer[SEND_BUFF_LEN];
 

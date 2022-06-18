@@ -181,6 +181,8 @@ int main(void)
   // Map flash
   W25QXX_ExitQPIMode();
   W25QXX_Reset();
+  W25Q_Memory_Mapped_Enable();
+
 
   hdr.ih_hdr_size=0;
   dummy_rsp.br_image_off = APPLICATION_ADDRESS;
@@ -211,6 +213,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
+}
+
+void log_serial(char *data,int len) {
+  HAL_UART_Transmit(&huart4,data,len,0);// Sending in normal mode
 }
 
 /**

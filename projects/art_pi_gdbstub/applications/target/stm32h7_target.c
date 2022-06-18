@@ -491,7 +491,7 @@ void stm32h7_regs_read(target *t, void *data) {
 	gdb_regfile.lr = save_registers.lr;
 	gdb_regfile.pc = save_registers.pc;
 	gdb_regfile.xpsr = save_registers.xPSR;
-    gdb_regfile.fpscr = 0xdeadbeef;
+    //gdb_regfile.fpscr = 0xdeadbeef;
 
 	int *p=(int*)&gdb_regfile.r0;
 	memcpy(data,p,sizeof(GdbRegFile));
@@ -846,12 +846,17 @@ void h7_mem_read(target *t, void *dest, target_addr src,size_t len) {
 	int * i = (int *) (src & (~3));
 
 	// TODO: better address range check?
-	if (src < 0x20000000 || src >= 0x60000000) {
-		return;
-	}
+	//if (src < 0x20000000 || src >= 0x60000000) {
+	//	return;
+	//}
 
     int * dm = (int *) dest;
-    *dm= *i >> ((src & 3) * 8);
+	for(int j=0; j<len/4; j++) {
+	    *dm= *i >> ((src & 3) * 8);
+		dm++;
+		i++;
+    }
+
 }
 
 void h7_mem_write(target *t, target_addr dest,const void *src, size_t len) {

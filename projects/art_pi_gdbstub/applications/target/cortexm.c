@@ -490,16 +490,16 @@ bool cortexm_probe(ADIv5_AP_t *ap)
 bool cortexm_attach(target *t)
 {
 	ADIv5_AP_t *ap = cortexm_ap(t);
-	ap->dp->fault = 1; /* Force switch to this multi-drop device*/
-	target_check_error(t);
+	//ap->dp->fault = 1; /* Force switch to this multi-drop device*/
+	// target_check_error(t);
 	struct cortexm_priv *priv = t->priv;
 	unsigned i;
 	uint32_t r;
 
 	/* Clear any pending fault condition */
-	target_check_error(t);
+	// target_check_error(t);
 
-	target_halt_request(t);
+	//target_halt_request(t);
 	/* Request halt on reset */
 	target_mem_write32(t, CORTEXM_DEMCR, priv->demcr);
 
