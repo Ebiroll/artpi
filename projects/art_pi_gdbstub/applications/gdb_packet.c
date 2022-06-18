@@ -29,6 +29,9 @@
 
 #include <stdarg.h>
 
+extern void log_serial(char *data,int len);
+
+
 int gdb_getpacket(char *packet, int size)
 {
 	unsigned char c;
@@ -39,7 +42,7 @@ int gdb_getpacket(char *packet, int size)
 	while(gdb_if_is_running()==1) {
 		/* Wait for packet start */
 		while((packet[0] = gdb_if_getchar()) != '$')
-			if(packet[0] == 0x04) return 1;
+			if(packet[0] == 0x04 || packet[0] == '-') return 1;
 
 		i = 0; csum = 0;
 		/* Capture packet data into buffer */
@@ -65,8 +68,11 @@ int gdb_getpacket(char *packet, int size)
 		recv_csum[1] = gdb_if_getchar();
 		recv_csum[2] = 0;
 
+		// log_serial(packet,32);
+
 		/* return packet if checksum matches */
 		if(csum == strtol(recv_csum, NULL, 16)) break;
+
 
 		/* get here if checksum fails */
 		gdb_if_putchar('-', 1); /* send nack */

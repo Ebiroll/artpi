@@ -96,7 +96,13 @@ int gdb_if_init(void)
 	return 0;
 }
 unsigned char gdb_if_getchar(void) {
-	return gdbRecvChar();
+    int ret=-1;
+    while(ret<0) {
+        ret=gdbRecvChar();
+        if (ret>0) {return ret;};
+        platform_delay(10);
+    }
+    return 0;
 }
 
 

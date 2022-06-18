@@ -216,7 +216,8 @@ int main(void)
 }
 
 void log_serial(char *data,int len) {
-  HAL_UART_Transmit(&huart4,data,len,0);// Sending in normal mode
+  // 10 ms
+  HAL_UART_Transmit(&huart4,data,len,10);// Sending in normal mode
 }
 
 /**
