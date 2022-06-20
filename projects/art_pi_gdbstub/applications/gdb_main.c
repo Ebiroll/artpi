@@ -154,12 +154,13 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 	bool single_step = false;
 
 	setNextBuffer();
-
+/*
 	//uint8_t arm_regs[target_regs_size(cur_target)];
 	GdbRegFile regs;
 	target_regs_read(cur_target, &regs);
 	gdb_putpacket(hexify(pbuf, &regs, sizeof(GdbRegFile)),
 					sizeof(GdbRegFile) * 2);
+*/
 
 	//log_serial("Entring GDB protocol main loop\n",31);
 	/* GDB protocol main loop */
@@ -178,13 +179,6 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 			gdb_putpacket(hexify(pbuf, arm_regs, sizeof(GdbRegFile)),
 			              2*sizeof(GdbRegFile));   // target_regs_size(cur_target)
 			free(arm_regs);
-			//   [$ff0000002003000038060020010000000000000001000000d40200202003000008240020000000000000000000000000e41c0020a0fe012047180008e6170008#4fd13->fd-scheduled]
-			//   +$02000000e9ffffff00000840010000000200000002000000010000000000f81f0000000000000000000000000000000002000000f0fd012002000000e41c0020f1  780008efbeadde#0F]
-			//   [$02000000e9ffffff00000840010000000200000002000000010000000000f81f0824002000000000000000000000000002000000f0fd012002000000e41c0020f1780008efbeadde#1F]
-
-			//   $ff0000002003000038060020010000000000000001000000d40200202003000008240020000000000000000000000000e41c0020a0fe012047180008e6170008#4f d13->fd-scheduled]
-		    //  +$02000000e9ffffff00000840010000000200000002000000010000000000f81fd0fe012000000000000000000000000002000000f8fd012002000000a01d002015 7a0008#8
-
 			break;
 			}
 		case 'm': {	/* 'm addr,len': Read len bytes from addr */
