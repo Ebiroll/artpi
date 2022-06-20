@@ -842,6 +842,8 @@ bool stm32h7_probe(target *t)
 }
 
 void h7_mem_read(target *t, void *dest, target_addr src,size_t len) {
+#if 0
+	// Hocus pocus
    	//printf("esp32_mem_read %d\n",len);
 	int * i = (int *) (src & (~3));
 
@@ -856,16 +858,52 @@ void h7_mem_read(target *t, void *dest, target_addr src,size_t len) {
 		dm++;
 		i++;
     }
+#endif
+    if (len=4) {
+		uint32_t *source=(uint32_t *)src;
+		uint32_t *destination=(uint32_t *)dest;
+		*destination=*source;
+	}
+	else
+	{
+		unsigned char *source=(unsigned char *)src;
+		unsigned char *destination=(unsigned char *)dest;
 
+		for(int j=0; j<len; j++) 
+		{
+			*destination=*source;
+			source++;
+			destination++;
+		}
+	}
 }
 
 void h7_mem_write(target *t, target_addr dest,const void *src, size_t len) {
+#if 0
   int * ip = (int *) (dest & (~3));
   int * sip = (int *) (dest & (~3));
 
   for(int i=0; i<len/4; i++) {
     ip[i] = sip[i];
   }
+#endif
+    if (len=4) {
+		uint32_t *source=(uint32_t *)src;
+		uint32_t *destination=(uint32_t *)dest;
+		*destination=*source;
+	}
+	else
+	{
+		unsigned char *source=(unsigned char *)src;
+		unsigned char *destination=(unsigned char *)dest;
+
+		for(int j=0; j<len; j++) 
+		{
+			*destination=*source;
+			source++;
+			destination++;
+		}
+	}
 }
 
 static bool h7_check_error(target *t)

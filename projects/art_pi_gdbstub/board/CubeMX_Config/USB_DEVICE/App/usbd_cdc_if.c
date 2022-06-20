@@ -49,7 +49,7 @@
   */
 
 /* USER CODE BEGIN PRIVATE_TYPES */
-extern uint8_t gdb_buffer[256];
+extern uint8_t gdb_buffer[512];
 extern int read_pos;
 extern int read_len;
 /* USER CODE END PRIVATE_TYPES */
@@ -126,7 +126,10 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 static int8_t CDC_Init_FS(void);
 static int8_t CDC_DeInit_FS(void);
 static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
+#ifndef UNIT_TEST
+static
+#endif
+ int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 static int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
@@ -262,7 +265,10 @@ extern void process_chars_from_isr();
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
+ #ifndef UNIT_TEST
+static 
+#endif
+int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
@@ -270,15 +276,16 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 
   //memset (gdb_buffer, '\0', 256);  // clear the buffer
   uint8_t len = (uint8_t)*Len;
-  if (len<256) {
+  if (read_len+len<512) {
     int j=0;
     for (int i=read_pos;i<read_len;i++) {
       gdb_buffer[j++]=gdb_buffer[i];
     }
-    read_pos-=read_len;    
-    memcpy(&gdb_buffer[read_pos], Buf, len);  // copy the data to the buffer
+    read_len-=read_pos;
+    memcpy(&gdb_buffer[read_len], Buf, len);  // copy the data to the buffer
+    read_pos=0; 
     memset(Buf, '\0', len);   // clear the Buf also
-    read_len=read_pos+len;
+    read_len=read_len+len;
   }
   process_chars_from_isr();
   return (USBD_OK);

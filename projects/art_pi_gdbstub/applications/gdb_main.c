@@ -145,10 +145,15 @@ static long gdb_get_hex_val(uint8_t **ptr, size_t bits) {
 extern void log_serial(char *data,int len);
 
 
+extern void setNextBuffer();
+
+
 int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 {
 	int size;
 	bool single_step = false;
+
+	setNextBuffer();
 
 	//uint8_t arm_regs[target_regs_size(cur_target)];
 	GdbRegFile regs;
@@ -159,6 +164,7 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 	//log_serial("Entring GDB protocol main loop\n",31);
 	/* GDB protocol main loop */
 	while(gdb_if_is_running()==1) {
+		setNextBuffer();
 		SET_IDLE_STATE(1);
 		size = gdb_getpacket(pbuf, BUF_SIZE);
 		SET_IDLE_STATE(0);
@@ -482,6 +488,7 @@ handle_q_packet(char *packet, int len)
 		"qXfer:threads:read+;"
 		"PacketSize=255";
 */
+					   //$PacketSize= ;qXfer:memory-map:read+;qXfer:features:read+
 		gdb_putpacket_f("PacketSize=%X;qXfer:memory-map:read+;qXfer:features:read+;qXfer:threads:read+", BUF_SIZE);
         //gdb_putpacket_f("PacketSize=%X;swbreak+;hwbreak+;qXfer:threads:read+", BUF_SIZE); // 
 

@@ -52,6 +52,7 @@ Core/Src/stm32h7xx_hal_msp.c \
 ../../applications/target.c \
 ../../applications/crc32.c \
 ../../applications/hex_utils.c \
+../../applications/unit_test.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
@@ -166,6 +167,8 @@ endif
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
+# To run in qemu
+#  -D UNIT_TEST
 
 #######################################
 # LDFLAGS
