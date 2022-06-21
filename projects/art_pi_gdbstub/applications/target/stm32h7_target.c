@@ -859,7 +859,7 @@ void h7_mem_read(target *t, void *dest, target_addr src,size_t len) {
 		i++;
     }
 #endif
-    if (len=4) {
+    if (len==4) {
 		uint32_t *source=(uint32_t *)src;
 		uint32_t *destination=(uint32_t *)dest;
 		*destination=*source;
@@ -887,7 +887,7 @@ void h7_mem_write(target *t, target_addr dest,const void *src, size_t len) {
     ip[i] = sip[i];
   }
 #endif
-    if (len=4) {
+    if (len==4) {
 		uint32_t *source=(uint32_t *)src;
 		uint32_t *destination=(uint32_t *)dest;
 		*destination=*source;
