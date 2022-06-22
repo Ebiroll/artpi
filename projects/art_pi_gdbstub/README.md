@@ -38,6 +38,7 @@ This can also be a useful way to keep an active GDB session open and probe its s
 
 Access the Debug Access Port (DAP) via JTAG or SWD.
 https://interrupt.memfault.com/blog/a-deep-dive-into-arm-cortex-m-debug-interfaces
+
 # Interesting article for x86
 
 https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/

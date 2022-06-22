@@ -142,6 +142,9 @@ static void do_boot(struct boot_rsp * rsp)
     }
 }
 
+extern void setNextBuffer();
+
+
 /* USER CODE END 0 */
 extern   void main_task(void *parameters);
 
@@ -204,11 +207,31 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  setNextBuffer();
+  int i=0;
+
   while (1)
   {
     // gdb main task
-    main_task(NULL);
+    //main_task(NULL);
     /* USER CODE END WHILE */
+    uint8_t CounterText[6];
+    sprintf(CounterText,"%d\n",i);
+    HAL_UART_Transmit(&huart4,CounterText,strlen(CounterText),5);// Sending in normal mode
+    i++;
+    setNextBuffer();
+    {
+      uint32_t tickstart;
+
+      tickstart = HAL_GetTick();
+
+      while (((HAL_GetTick() - tickstart) < 10 ))
+      {
+      __ASM volatile ("nop");
+      //__asm("nop");
+      }
+    }
+
 
     /* USER CODE BEGIN 3 */
   }

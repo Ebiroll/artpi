@@ -148,28 +148,10 @@ extern void log_serial(char *data,int len);
 extern void setNextBuffer();
 
 
-int gdb_main_loop(struct target_controller *tc, bool in_syscall)
+int gdb_main_switch(struct target_controller *tc,int size, bool in_syscall)
 {
-	int size;
 	bool single_step = false;
 
-	setNextBuffer();
-/*
-	//uint8_t arm_regs[target_regs_size(cur_target)];
-	GdbRegFile regs;
-	target_regs_read(cur_target, &regs);
-	gdb_putpacket(hexify(pbuf, &regs, sizeof(GdbRegFile)),
-					sizeof(GdbRegFile) * 2);
-*/
-
-	//log_serial("Entring GDB protocol main loop\n",31);
-	/* GDB protocol main loop */
-	while(gdb_if_is_running()==1) {
-		setNextBuffer();
-		SET_IDLE_STATE(1);
-		size = gdb_getpacket(pbuf, BUF_SIZE);
-		SET_IDLE_STATE(0);
-		//log_serial(pbuf,strlen(pbuf));
 		switch(pbuf[0]) {
 		/* Implementation of these is mandatory! */
 		case 'g': { /* 'g': Read general registers */
@@ -374,7 +356,6 @@ int gdb_main_loop(struct target_controller *tc, bool in_syscall)
 			DEBUG_BM("*** Unsupported packet: %s\n", pbuf);
 			gdb_putpacketz("");
 		}
-	}
 	return 0;
 }
 
@@ -629,13 +610,39 @@ target *stm32h7_probe_with_controller(struct target_controller *controller);
 
 void gdb_main(void)
 {	
-	//gdb_controller
-	//gdb_controller.
+	int size;
 	cur_target = stm32h7_probe_with_controller(&gdb_controller);
-	gdb_main_loop(&gdb_controller, false);
+
+	setNextBuffer();
+/*
+	//uint8_t arm_regs[target_regs_size(cur_target)];
+	GdbRegFile regs;
+	target_regs_read(cur_target, &regs);
+	gdb_putpacket(hexify(pbuf, &regs, sizeof(GdbRegFile)),
+					sizeof(GdbRegFile) * 2);
+*/
+
+	//log_serial("Entring GDB protocol main loop\n",31);
+	/* GDB protocol main loop */
+	while(gdb_if_is_running()==1) {
+		setNextBuffer();
+		SET_IDLE_STATE(1);
+		size = gdb_getpacket(pbuf, BUF_SIZE);
+		SET_IDLE_STATE(0);
+		//log_serial(pbuf,strlen(pbuf));
+
+		gdb_main_switch(&gdb_controller,size, false);
+
+	}
+
 }
 
 void process_chars_from_isr() {
+	
 	// Pull one command from the GDB packet buffer and process it
-	// gdb_main_loop(&gdb_controller, false);
+	int size;
+	size = gdb_getpacket(pbuf, BUF_SIZE);
+	//log_serial(pbuf,strlen(pbuf));
+	gdb_main_switch(&gdb_controller,size, false);
+
 }

@@ -284,10 +284,13 @@ int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     read_len-=read_pos;
     memcpy(&gdb_buffer[read_len], Buf, len);  // copy the data to the buffer
     read_pos=0; 
-    memset(Buf, '\0', len);   // clear the Buf also
     read_len=read_len+len;
   }
-  process_chars_from_isr();
+  if (read_len>4) {
+    if (gdb_buffer[read_len-3]=='#' || gdb_buffer[read_len-4]=='#') {
+      process_chars_from_isr();
+    }
+  }
   return (USBD_OK);
   /* USER CODE END 6 */
 }
