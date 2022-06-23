@@ -287,7 +287,7 @@ int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     read_len=read_len+len;
   }
   if (read_len>4) {
-    if (gdb_buffer[read_len-3]=='#' || gdb_buffer[read_len-4]=='#') {
+    if (gdb_buffer[read_len]=='+' || gdb_buffer[read_len]=='-' || gdb_buffer[read_len-3]=='#' || gdb_buffer[read_len-4]=='#') {
       process_chars_from_isr();
     }
   }

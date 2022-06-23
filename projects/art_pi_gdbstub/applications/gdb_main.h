@@ -42,7 +42,7 @@ typedef struct  {
   uint32_t sp;
   uint32_t lr; 
   uint32_t pc;  
-  uint32_t xpsr;
+  //uint32_t xpsr;
   //uint32_t  fpscr;
 } GdbRegFile;
 

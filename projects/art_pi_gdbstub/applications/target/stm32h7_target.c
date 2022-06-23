@@ -490,7 +490,7 @@ void stm32h7_regs_read(target *t, void *data) {
 	gdb_regfile.sp = save_registers.sp;
 	gdb_regfile.lr = save_registers.lr;
 	gdb_regfile.pc = save_registers.pc;
-	gdb_regfile.xpsr = save_registers.xPSR;
+	//gdb_regfile.xpsr = save_registers.xPSR;
     //gdb_regfile.fpscr = 0xdeadbeef;
 
 	int *p=(int*)&gdb_regfile.r0;
@@ -599,6 +599,22 @@ static const char tdesc_h7[] =
 	"  </feature>"
 	"</target>";
 
+static const char h7_memory_map[] =
+"<?xml version=\"1.0\"?>"
+"<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+"     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+"<memory-map>  <memory type=\"rom\" start=\"0x00000000\" length=\"0x10000\"/>"
+"  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"
+"  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"
+"  <memory type=\"ram\" start=\"0x30000000\" length=\"0x48000\"/> "
+"  <memory type=\"ram\" start=\"0x38000000\" length=\"0x10000\"/>  "
+"  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\"> "
+"    <property name=\"blocksize\">0x20000</property>  "
+"  </memory>  "
+"  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/> "
+"  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/> "
+"  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"
+"</memory-map>";
 
 static int stm32h7_flash_erase(struct target_flash *f, target_addr addr,
 							   size_t len);
@@ -958,6 +974,8 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	t->mem_read = h7_mem_read;
 	t->mem_write = h7_mem_write;
 	t->regs_read=stm32h7_regs_read;
+	t->tdesc = tdesc_h7;
+	t->dyn_mem_map = h7_memory_map;
 
     target_attach(t,controller);
 

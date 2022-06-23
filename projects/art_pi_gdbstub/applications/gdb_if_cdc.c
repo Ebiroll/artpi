@@ -28,7 +28,7 @@ static char chsum;						//Running checksum of the output packet
 
 // Buffer to communicate with GDB
 uint8_t gdb_buffer[512];
-#define SEND_BUFF_LEN 256
+#define SEND_BUFF_LEN 1500
 uint8_t send_buffer[SEND_BUFF_LEN];
 
 int read_pos=0;
@@ -97,7 +97,7 @@ int gdb_if_init(void)
 }
 unsigned char gdb_if_getchar(void) {
     // Do not wait in isr_loop
-    int ret=-1;
+    int ret=0;
     //while(ret<0) {
         ret=gdbRecvChar();
         if (ret>0) {return ret;};

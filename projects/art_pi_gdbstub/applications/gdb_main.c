@@ -44,7 +44,7 @@ enum gdb_signal {
 	GDB_SIGLOST = 29,
 };
 
-#define BUF_SIZE	256
+#define BUF_SIZE	1500
 
 #define ERROR_IF_NO_TARGET()	\
 	if(!cur_target) { gdb_putpacketz("EFF"); break; }
@@ -53,6 +53,8 @@ static char pbuf[BUF_SIZE+1];
 
 static target *cur_target;
 static target *last_target;
+
+bool waiting_for_ack_nack=false;
 
  void handle_q_packet(char *packet, int len);
  void handle_v_packet(char *packet, int len);
@@ -464,8 +466,9 @@ handle_q_packet(char *packet, int len)
 		"PacketSize=255";
 */
 					   //$PacketSize= ;qXfer:memory-map:read+;qXfer:features:read+
-		gdb_putpacket_f("PacketSize=%X;qXfer:memory-map:read+;qXfer:features:read+;qXfer:threads:read+", BUF_SIZE);
+		gdb_putpacket_f("PacketSize=%X;qXfer:memory-map:read+;qXfer:features:read+;", BUF_SIZE);
         //gdb_putpacket_f("PacketSize=%X;swbreak+;hwbreak+;qXfer:threads:read+", BUF_SIZE); // 
+		// Skip qXfer:threads:read+
 
 	} else if (strncmp (packet, "qXfer:memory-map:read::", 23) == 0) {
 		/* Read target XML memory map */
@@ -613,7 +616,7 @@ void gdb_main(void)
 	int size;
 	cur_target = stm32h7_probe_with_controller(&gdb_controller);
 
-	setNextBuffer();
+	//setNextBuffer();
 /*
 	//uint8_t arm_regs[target_regs_size(cur_target)];
 	GdbRegFile regs;
@@ -621,11 +624,11 @@ void gdb_main(void)
 	gdb_putpacket(hexify(pbuf, &regs, sizeof(GdbRegFile)),
 					sizeof(GdbRegFile) * 2);
 */
-
+#if 0
 	//log_serial("Entring GDB protocol main loop\n",31);
 	/* GDB protocol main loop */
 	while(gdb_if_is_running()==1) {
-		setNextBuffer();
+		//setNextBuffer();
 		SET_IDLE_STATE(1);
 		size = gdb_getpacket(pbuf, BUF_SIZE);
 		SET_IDLE_STATE(0);
@@ -634,13 +637,19 @@ void gdb_main(void)
 		gdb_main_switch(&gdb_controller,size, false);
 
 	}
-
+#endif
 }
 
 void process_chars_from_isr() {
 	
 	// Pull one command from the GDB packet buffer and process it
 	int size;
+	if (waiting_for_ack_nack) {
+		unsigned char c=gdb_if_getchar();
+		if (c=='+') {
+			waiting_for_ack_nack=false;
+		}
+	}
 	size = gdb_getpacket(pbuf, BUF_SIZE);
 	//log_serial(pbuf,strlen(pbuf));
 	gdb_main_switch(&gdb_controller,size, false);

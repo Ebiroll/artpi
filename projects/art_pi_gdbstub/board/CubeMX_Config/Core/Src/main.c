@@ -194,8 +194,8 @@ int main(void)
   uint8_t Test[] = "Disable ICache !!!\r\n"; //Data to send
   HAL_UART_Transmit(&huart4,Test,sizeof(Test),21);// Sending in normal mode
 
-  SCB_DisableICache();
-  SCB_DisableDCache();
+  //SCB_DisableICache();
+  //SCB_DisableDCache();
 
   uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
   HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
@@ -207,25 +207,27 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  setNextBuffer();
+  //setNextBuffer();
   int i=0;
 
+  // attach target
+  gdb_main();
   while (1)
   {
     // gdb main task
     //main_task(NULL);
     /* USER CODE END WHILE */
     uint8_t CounterText[6];
-    sprintf(CounterText,"%d\n",i);
+    sprintf(CounterText,"%d\r\n",i);
     HAL_UART_Transmit(&huart4,CounterText,strlen(CounterText),5);// Sending in normal mode
     i++;
-    setNextBuffer();
+    //setNextBuffer();
     {
       uint32_t tickstart;
 
       tickstart = HAL_GetTick();
 
-      while (((HAL_GetTick() - tickstart) < 10 ))
+      while (((HAL_GetTick() - tickstart) < 500 ))
       {
       __ASM volatile ("nop");
       //__asm("nop");

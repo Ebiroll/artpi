@@ -29,6 +29,8 @@
 
 #include <stdarg.h>
 
+extern bool waiting_for_ack_nack;
+
 extern void log_serial(char *data,int len);
 
 
@@ -102,7 +104,8 @@ void gdb_putpacket(const char *packet, int size)
 	char xmit_csum[3];
 	int tries = 0;
 
-	do {
+	//do 
+	{
 #ifdef DEBUG_GDBPACKET
 		DEBUG("%s : ", __func__);
 #endif
@@ -132,7 +135,8 @@ void gdb_putpacket(const char *packet, int size)
 #ifdef DEBUG_GDBPACKET
 		DEBUG("\n");
 #endif
-	} while((gdb_if_getchar_to(2000) != '+') && (tries++ < 3));
+	} //while((gdb_if_getchar_to(2000) != '+') && (tries++ < 3));
+	waiting_for_ack_nack=true;
 }
 
 void gdb_putpacket_f(const char *fmt, ...)
