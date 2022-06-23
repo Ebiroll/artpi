@@ -246,8 +246,10 @@ void OTG_FS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
 // Save registers within an interrupt. Changes R0 register
-  asm volatile(SAVE_STACK);
-  asm volatile(SAVE_REGISTERS);
+  //asm volatile("push {r0}");
+  //asm volatile(SAVE_STACK);
+  //asm volatile(SAVE_REGISTERS);
+  //asm volatile("pop {r0}");
 
   /* USER CODE END OTG_FS_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);

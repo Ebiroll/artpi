@@ -404,7 +404,8 @@ handle_q_packet(char *packet, int len)
 
  	if (strncmp(packet, "qfThreadInfo", 11)==0) {
 		//gdb_putpacketz("m 01,02,03,04,l");
-		gdb_putpacketz("m 1001,l");
+		// gdb_putpacketz("m 1001,l");
+		gdb_putpacketz("");
 		return;
 	 }
 
@@ -422,7 +423,8 @@ handle_q_packet(char *packet, int len)
 
 
  	if (strncmp(packet, "qTStatus,", 8)==0) {
-		gdb_putpacketz("T0;tnotrun:00");
+		gdb_putpacketz("");
+		//gdb_putpacketz("T0;tnotrun:00");
 		return;
 	 }
 

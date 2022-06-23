@@ -977,15 +977,18 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	t->tdesc = tdesc_h7;
 	t->dyn_mem_map = h7_memory_map;
 
+// Test set registers
+
+	asm volatile(
+		"svc #0x10 \n"
+		"nop \n"
+		"svc #0x10 \n"
+		"nop \n");
+
+
     target_attach(t,controller);
 
-// Test
- asm volatile(
-    "svc #0x10 \n"
-    "nop \n");
-
-
-}
+};
 
 
 
