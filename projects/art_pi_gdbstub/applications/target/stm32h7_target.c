@@ -979,12 +979,6 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 
 // Test set registers
 
-	asm volatile(
-		"svc #0x10 \n"
-		"nop \n"
-		"svc #0x10 \n"
-		"nop \n");
-
 
     target_attach(t,controller);
 

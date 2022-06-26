@@ -212,6 +212,13 @@ int main(void)
 
   // attach target
   gdb_main();
+
+  asm volatile(
+  "svc #0x10 \n"
+  "nop \n"
+  "svc #0x10 \n"
+  "nop \n");
+
   while (1)
   {
     // gdb main task
