@@ -45,10 +45,7 @@
 #define USART_TDR  0x28
 #define USART_PRESC  0x2C
 
-
-
 #define USART_SR   0x00
-
 
 
 /*
@@ -62,10 +59,20 @@
 #define USART_SR_TC   (1 << 6)
 #define USART_SR_RXNE (1 << 5)
 
-#define USART_CR1_UE  (1 << 13)
+#define USART_ISR_RXNE_RXFNE_Msk        (0x1UL << USART_ISR_RXNE_RXFNE_Pos)    /*!< 0x00000020 */
+#define USART_ISR_RXNE_RXFNE            USART_ISR_RXNE_RXFNE_Msk               /*!< Read Data Register or RX FIFO Not Empty */
+#define USART_ISR_TC_Pos                (6U)
+
+
+
 #define USART_CR1_RXNEIE  (1 << 5)
 #define USART_CR1_TE  (1 << 3)
+
+// USART enable
+#define USART_CR1_UE  (1 << 0)
 #define USART_CR1_RE  (1 << 2)
+
+// 0x00000004
 
 #define TYPE_STM32_UART "stm32-uart"
 OBJECT_DECLARE_SIMPLE_TYPE(STM32UartState, STM32_UART)

@@ -98,7 +98,11 @@ static uint64_t stm32_uart_read(void *opaque, hwaddr addr,
 
     switch (addr) {
         case USART_ISR:
-         retvalue = 0x200000 | 0x400000 | 0x80;
+                                /* TXEACK */ 
+                                /* Transmit Enable Acknowledge Flag */
+         retvalue = s->usart_sr | 0x200000 | 0x400000 | 0x80;
+        // retvalue = USART_SR_RXNE;
+
         //qemu_log_mask(LOG_GUEST_ERROR,
         //              "ISR %s: Bad offset 0x%"HWADDR_PRIx"\n", __func__, addr);
         return retvalue;
