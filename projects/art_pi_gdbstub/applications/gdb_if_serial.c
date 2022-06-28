@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2022 Olof Åstrand
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,22 +13,16 @@
 // limitations under the License.
 
 /******************************************************************************
- * Description: interface to gdb over wifi
+ * Description: interface to gdb over serial
  *******************************************************************************/
 
-#include "rom/ets_sys.h"
-#include "soc/uart_reg.h"
-#include "soc/io_mux_reg.h"
-//#include "esp_gdbstub.h"
-#include <string.h>
-#include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "lwip/sockets.h"
-#include "soc/cpu.h"
 #include "gdb_if.h"
+#include "stm32h7xx_hal.h"
 
-#define USE_SERIAL CONFIG_USE_SERIAL
+#define USE_SERIAL 1
+
+extern UART_HandleTypeDef huart4;
+
 
 //Length of buffer used to reserve GDB commands. Has to be at least able to fit the G command, which
 //implies a minimum size of about 320 bytes.
@@ -38,31 +32,32 @@ static char chsum;						//Running checksum of the output packet
 #define ATTR_GDBFN
 
 
-int gdb_socket=0;
 #define IN_BUFFER_LEN 512
-static unsigned char inbuf[IN_BUFFER_LEN];
-static int in_buf_head = 0;
 static int in_buf_received = 0;
+
+uint8_t gdb_buffer[IN_BUFFER_LEN];
+int read_pos;
+int read_len;
+
+
 
 #if defined(USE_SERIAL) 
 
 
 int ATTR_GDBFN gdbRecvChar() {
-	int i;
-	while (((READ_PERI_REG(UART_STATUS_REG(0))>>UART_RXFIFO_CNT_S)&UART_RXFIFO_CNT)==0) ;
-	i=READ_PERI_REG(UART_FIFO_REG(0));
-	return i;
+	HAL_StatusTypeDef ret=HAL_UART_Receive (&huart4, gdb_buffer, 1, 1000);
+	if (ret==HAL_OK) {
+		//read_pos++;
+		return gdb_buffer[0];
+	} else {
+		return -1;
+	}
 }
 
 //Send a char to the uart.
 void ATTR_GDBFN gdbSendChar(char c) {
-	while (((READ_PERI_REG(UART_STATUS_REG(0))>>UART_TXFIFO_CNT_S)&UART_TXFIFO_CNT)>=126) ;
-	WRITE_PERI_REG(UART_FIFO_REG(0), c);
+	HAL_UART_Transmit (&huart4, &c, 1, 0);
 }
-
-
-
-
 
 
 
@@ -101,27 +96,23 @@ unsigned char gdb_if_getchar(void) {
 	return gdbRecvChar();
 }
 
-// 
-// https://github.com/espressif/esp-idf/issues/5101
-
-uint32_t platform_time_ms(void)
-{
-    //return xTaskGetTickCount() / portTICK_PERIOD_MS;
-	int64_t time_milli=esp_timer_get_time()/1000;
-	return((uint32_t)time_milli);
-}	
 
 unsigned char gdb_if_getchar_to(int timeout) {
-    unsigned char ret=0;
+	/*
+	    unsigned char ret=0;
     uint32_t now;
     uint32_t start=platform_time_ms();
     do {
-        if (((READ_PERI_REG( UART_STATUS_REG(0))>> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT)!=0) {
-            return (READ_PERI_REG(UART_FIFO_REG(0)));
+        int val=gdbRecvChar();
+        if (val!=-1) {
+            ret=val;
+            break;
         }
         now=platform_time_ms();
     } while((now-start)<timeout);
 	return ret;
+	*/
+
 }
 
 
@@ -145,8 +136,7 @@ void ATTR_GDBFN gdbPacketHex(int val, int bits) {
 }
 
 void gdbPacketFlush() {
-    int  nwrote;
-    // TODO!!
+    //int  nwrote;
 }
 
 //Finish sending a packet.
@@ -157,50 +147,12 @@ void ATTR_GDBFN gdbPacketEnd() {
 }
 
 
-/* 
-//Register format as the Xtensa HAL has it:
-STRUCT_FIELD (long, 4, XT_STK_EXIT,     exit)
-STRUCT_FIELD (long, 4, XT_STK_PC,       pc)
-STRUCT_FIELD (long, 4, XT_STK_PS,       ps)
-STRUCT_FIELD (long, 4, XT_STK_A0,       a0)
-[..]
-STRUCT_FIELD (long, 4, XT_STK_A15,      a15)
-STRUCT_FIELD (long, 4, XT_STK_SAR,      sar)
-STRUCT_FIELD (long, 4, XT_STK_EXCCAUSE, exccause)
-STRUCT_FIELD (long, 4, XT_STK_EXCVADDR, excvaddr)
-STRUCT_FIELD (long, 4, XT_STK_LBEG,   lbeg)
-STRUCT_FIELD (long, 4, XT_STK_LEND,   lend)
-STRUCT_FIELD (long, 4, XT_STK_LCOUNT, lcount)
-// Temporary space for saving stuff during window spill 
-STRUCT_FIELD (long, 4, XT_STK_TMP0,   tmp0)
-STRUCT_FIELD (long, 4, XT_STK_TMP1,   tmp1)
-STRUCT_FIELD (long, 4, XT_STK_TMP2,   tmp2)
-STRUCT_FIELD (long, 4, XT_STK_VPRI,   vpri)
-STRUCT_FIELD (long, 4, XT_STK_OVLY,   ovly)
-#endif
-STRUCT_END(XtExcFrame)
-*/
-
-
-
-
-
-
-void set_gdb_socket(int socket) {
-   gdb_socket=socket;
-}
-
 
 int gdb_if_is_running(void) {
-	if (gdb_socket>0) {
-		return 1;
-	}
-	return 0;
+	return 1;
 }
 
 void gdb_if_close(void) {
-	close(gdb_socket);
-	gdb_socket=0;
 }
 
 #endif

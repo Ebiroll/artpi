@@ -127,3 +127,14 @@ Virtual com port
 [21847.319453] cdc_acm 2-1.6:1.0: ttyACM1: USB ACM device
 ``` 
 
+
+# Testing in qemu
+
+    build/arm-softmmu/qemu-system-arm -M artpi -d 'unimp' -bios ../artpi/projects/art_pi_gdbstub/board/CubeMX_Config/build/artpi_gdbstub_boot.bin  -s -S  -serial tcp::5551,server,nowait   -serial tcp::5552,server,nowait  -serial tcp::5553,server,nowait  -serial tcp::5554,server,nowait    -serial tcp::5555,server,nowait
+
+No USB emulation but it is OK to connect the debugger over serial.
+
+    gdb-multiarch build/artpi_gdbstub_boot.elf  -ex 'target remote:5554'
+
+
+    (gdb) monitor system_reset

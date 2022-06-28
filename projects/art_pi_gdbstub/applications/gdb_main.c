@@ -626,7 +626,7 @@ void gdb_main(void)
 	gdb_putpacket(hexify(pbuf, &regs, sizeof(GdbRegFile)),
 					sizeof(GdbRegFile) * 2);
 */
-#if 0
+#if 1
 	//log_serial("Entring GDB protocol main loop\n",31);
 	/* GDB protocol main loop */
 	while(gdb_if_is_running()==1) {

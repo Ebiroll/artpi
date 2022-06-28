@@ -549,12 +549,15 @@ void stm32h7_jump_boot_loader(void)
      }
 }
 
+extern  void  boot_uboot();
 
 const struct command_s stm32h7_cmd_list[] = {
 	{"erase_mass", (cmd_handler)stm32h7_cmd_erase_mass,
 	 "Erase entire flash memory"},
 	{"boot_loader", (cmd_handler)stm32h7_jump_boot_loader,
 	 "Jump to bootloader"},
+	{"boot_uboot", (cmd_handler)boot_uboot,
+	 "Jump to uboot @0x90000000"},
 /*	{"option", (cmd_handler)stm32h7_cmd_option,
 	"Manipulate option bytes"},*/
 	{"psize", (cmd_handler)stm32h7_cmd_psize,
@@ -945,7 +948,45 @@ static void h7_halt_request(target *t)
 //	return false;
 //}
 
+static void h7_halt_resume(target *t, bool step)
+{
+	struct ADIv5_AP_s *priv = t->priv;
+	uint32_t dhcsr = CORTEXM_DHCSR_DBGKEY | CORTEXM_DHCSR_C_DEBUGEN;
 
+	if (step)
+		dhcsr |= CORTEXM_DHCSR_C_STEP | CORTEXM_DHCSR_C_MASKINTS;
+
+	/* Disable interrupts while single stepping... */
+	if(step != priv->stepping) {
+		target_mem_write32(t, CORTEXM_DHCSR, dhcsr | CORTEXM_DHCSR_C_HALT);
+		priv->stepping = step;
+	}
+
+/*
+	if (priv->on_bkpt) {
+		uint32_t pc = cortexm_pc_read(t);
+		if ((target_mem_read16(t, pc) & 0xFF00) == 0xBE00)
+			cortexm_pc_write(t, pc + 2);
+	}
+*/
+
+	if (priv->has_cache)
+		target_mem_write32(t, CORTEXM_ICIALLU, 0);
+
+	target_mem_write32(t, CORTEXM_DHCSR, dhcsr);
+}
+
+static void  h7_reset(target *t)
+{
+
+}
+
+static void h7_regs_write(target *t, const void *data)
+{
+	const uint32_t *regs = data;
+
+
+}
 
 target *stm32h7_probe_with_controller(struct target_controller *controller)
 {
@@ -976,6 +1017,9 @@ target *stm32h7_probe_with_controller(struct target_controller *controller)
 	t->regs_read=stm32h7_regs_read;
 	t->tdesc = tdesc_h7;
 	t->dyn_mem_map = h7_memory_map;
+	t->halt_resume = h7_halt_resume;
+	t->reset = h7_reset;
+	t->regs_write = h7_regs_write;
 
 // Test set registers
 

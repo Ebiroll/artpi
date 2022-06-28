@@ -59,6 +59,10 @@ struct ADIv5_AP_s {
 	ADIv5_DP_t *dp;
 	uint8_t apsel;
 
+	bool stepping;
+	bool on_bkpt;
+	bool has_cache;
+
 	uint32_t idr;
 	uint32_t base;
 	uint32_t csw;

@@ -148,6 +148,17 @@ extern void setNextBuffer();
 /* USER CODE END 0 */
 extern   void main_task(void *parameters);
 
+void boot_uboot() {
+  hdr.ih_hdr_size=0;
+  dummy_rsp.br_image_off = APPLICATION_ADDRESS;
+  dummy_rsp.br_hdr=&hdr;
+
+  do_boot(&dummy_rsp);
+  
+}
+
+
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -178,8 +189,16 @@ int main(void)
   MX_GPIO_Init();
   MX_UART4_Init();
   MX_QUADSPI_Init();
-  MX_USB_DEVICE_Init();
+  // TODO!!! When using USB call, MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+
+
+  
+  //uint8_t Test[] = "Disable ICache !!!\r\n"; //Data to send
+  //HAL_UART_Transmit(&huart4,Test,sizeof(Test),21);// Sending in normal mode
+
+  SCB_DisableICache();
+  SCB_DisableDCache();
 
   // Map flash
   W25QXX_ExitQPIMode();
@@ -187,18 +206,8 @@ int main(void)
   W25Q_Memory_Mapped_Enable();
 
 
-  hdr.ih_hdr_size=0;
-  dummy_rsp.br_image_off = APPLICATION_ADDRESS;
-  dummy_rsp.br_hdr=&hdr;
-
-  uint8_t Test[] = "Disable ICache !!!\r\n"; //Data to send
-  HAL_UART_Transmit(&huart4,Test,sizeof(Test),21);// Sending in normal mode
-
-  //SCB_DisableICache();
-  //SCB_DisableDCache();
-
-  uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
-  HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
+  //uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
+  //HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
 
 
   // Check button press to do proper boot
@@ -210,14 +219,16 @@ int main(void)
   //setNextBuffer();
   int i=0;
 
-  // attach target
-  gdb_main();
 
   asm volatile(
   "svc #0x10 \n"
   "nop \n"
   "svc #0x10 \n"
   "nop \n");
+
+  // attach target
+  gdb_main();
+
 
   while (1)
   {
@@ -228,7 +239,7 @@ int main(void)
     sprintf(CounterText,"%d\r\n",i);
     HAL_UART_Transmit(&huart4,CounterText,strlen(CounterText),5);// Sending in normal mode
     i++;
-    //setNextBuffer();
+    // Unit test, setNextBuffer();
     {
       uint32_t tickstart;
 

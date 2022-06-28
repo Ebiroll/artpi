@@ -1,3 +1,13 @@
+Debug load build/artpi_gdbstub_boot.elf
+
+
+w $][v][F][l][a][s][h][E][r][a][s][e][:][0][8][0][0][0][0][0][0][,][0][0][0][2][0][0][0][0][#][c][4][
+r +]
+
+
+
+
+
 (gdb) target remote /dev/ttyACM1
 Remote debugging using /dev/ttyACM1
 [
