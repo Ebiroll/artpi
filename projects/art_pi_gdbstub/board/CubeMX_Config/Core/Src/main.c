@@ -86,6 +86,8 @@ UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
 
+uint8_t UART4_rxBuffer[12] = {0};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -211,7 +213,7 @@ int main(void)
 
 
   // Check button press to do proper boot
-  //do_boot(&dummy_rsp);
+  //boot_uboot();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -229,9 +231,11 @@ int main(void)
   // attach target
   gdb_main();
 
-
+  // test uart interrupt receive
+ 
   while (1)
   {
+    #if 0
     // gdb main task
     //main_task(NULL);
     /* USER CODE END WHILE */
@@ -249,9 +253,9 @@ int main(void)
       {
       __ASM volatile ("nop");
       //__asm("nop");
-      }
+      }      
     }
-
+#endif
 
     /* USER CODE BEGIN 3 */
   }
@@ -262,6 +266,14 @@ void log_serial(char *data,int len) {
   // 10 ms
   HAL_UART_Transmit(&huart4,data,len,10);// Sending in normal mode
 }
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    HAL_UART_Transmit(&huart4, UART4_rxBuffer, 12, 100);
+    HAL_UART_Receive_IT(&huart4, UART4_rxBuffer, 12);
+}
+
+
 
 /**
   * @brief System Clock Configuration
