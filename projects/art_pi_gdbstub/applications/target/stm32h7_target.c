@@ -39,6 +39,8 @@
 #include "stm32h7_priv.h"
 #include "stm32h7xx_hal.h"
 #include "gdb_main.h"
+#include "w25qxx.h"
+
 ///////////////////////////////////////////////////////////
 
 #define FP_CTRL  (*(uint32_t*)0xE0002000)
@@ -812,6 +814,11 @@ static void stm32h7_add_flash(target *t,
 
 static bool stm32h7_external_flash_unlock(target *t, uint32_t addr)
 {
+#ifdef NOT_NOW
+	W25QXX_EnterQPIMode();
+	W25QXX_WriteEnable(1);
+#endif
+
 #if 0
 	uint32_t regbase = FPEC1_BASE;
 	if (addr >= BANK2_START) {
@@ -851,7 +858,7 @@ static int stm32h7_external_flash_erase(struct target_flash *f, target_addr addr
 	if (stm32h7_external_flash_unlock(t, addr) == false)
 		return -1;
 	/* We come out of reset with HSI 64 MHz. Adapt FLASH_ACR.*/
-	target_mem_write32(t, sf->regbase + FLASH_ACR, 0);
+	//target_mem_write32(t, sf->regbase + FLASH_ACR, 0);
 	addr &= (NUM_SECTOR_PER_BANK * FLASH_SECTOR_SIZE) - 1;
 	int start_sector =  addr / FLASH_SECTOR_SIZE;
 	int end_sector   = (addr + len - 1) / FLASH_SECTOR_SIZE;
@@ -860,6 +867,9 @@ static int stm32h7_external_flash_erase(struct target_flash *f, target_addr addr
 	uint32_t sr;
 	while (start_sector <= end_sector) 
 	{
+	#ifdef NOT_NOW
+		W25QXX_SectorErase(start_sector);
+	#endif
 		/*
 		uint32_t cr = (psize * FLASH_CR_PSIZE16) | FLASH_CR_SER |
 			(start_sector * FLASH_CR_SNB_1);
@@ -896,6 +906,11 @@ static int stm32h7_external_flash_write(struct target_flash *f, target_addr dest
 	if (stm32h7_external_flash_unlock(t, dest) == false)
 		return -1;
 	uint32_t cr = psize * FLASH_CR_PSIZE16;
+	// Sector erase starts at 0.
+	//W25QXX_Write(src, dest-f->start, len);
+#ifdef NOT_NOW
+	W25QXX_Write(src, dest, len);
+#endif
 
 /*	
 	target_mem_write32(t, sf->regbase + FLASH_CR, cr);
