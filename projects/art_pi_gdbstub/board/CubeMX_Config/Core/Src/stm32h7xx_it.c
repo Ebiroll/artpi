@@ -205,7 +205,6 @@ void UsageFault_Handler(void)
   }
 }
 
-
 /**
   * @brief This function handles Pendable request for system service.
   */
@@ -258,7 +257,6 @@ void OTG_FS_IRQHandler(void)
 
   /* USER CODE END OTG_FS_IRQn 1 */
 }
-
 /**
   * @brief This function handles UART4 global interrupt.
   */
@@ -272,8 +270,6 @@ void UART4_IRQHandler(void)
 
   /* USER CODE END UART4_IRQn 1 */
 }
-
-
 
 /* USER CODE BEGIN 1 */
 

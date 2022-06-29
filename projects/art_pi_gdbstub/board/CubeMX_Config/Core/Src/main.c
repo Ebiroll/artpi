@@ -80,9 +80,11 @@ struct boot_rsp dummy_rsp;
 
 /* Private variables ---------------------------------------------------------*/
 
-extern QSPI_HandleTypeDef hqspi;
+QSPI_HandleTypeDef hqspi;
 
 UART_HandleTypeDef huart4;
+
+SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN PV */
 
@@ -95,6 +97,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
 //static void MX_QUADSPI_Init(void);
+static void MX_FMC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -145,9 +148,6 @@ static void do_boot(struct boot_rsp * rsp)
 }
 
 extern void setNextBuffer();
-
-
-/* USER CODE END 0 */
 extern   void main_task(void *parameters);
 
 void boot_uboot() {
@@ -160,6 +160,7 @@ void boot_uboot() {
 }
 
 
+/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -191,7 +192,8 @@ int main(void)
   MX_GPIO_Init();
   MX_UART4_Init();
   MX_QUADSPI_Init();
-  // TODO!!! When using USB call, MX_USB_DEVICE_Init();
+  MX_USB_DEVICE_Init();
+  MX_FMC_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -240,8 +242,7 @@ int main(void)
     #if 0
     // gdb main task
     //main_task(NULL);
-    /* USER CODE END WHILE */
-    uint8_t CounterText[6];
+     uint8_t CounterText[6];
     sprintf(CounterText,"%d\r\n",i);
     HAL_UART_Transmit(&huart4,CounterText,strlen(CounterText),5);// Sending in normal mode
     i++;
@@ -257,13 +258,14 @@ int main(void)
       //__asm("nop");
       }      
     }
-#endif
-
+    #endif
+    /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
 
+#if 0
 void log_serial(char *data,int len) {
   // 10 ms
   HAL_UART_Transmit(&huart4,data,len,10);// Sending in normal mode
@@ -275,8 +277,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     HAL_UART_Receive_IT(&huart4, UART4_rxBuffer, 12);
 }
 
-
-
+#endif
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -295,6 +296,10 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+
+  /** Macro to configure the PLL clock source
+  */
+  __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -419,6 +424,53 @@ static void MX_UART4_Init(void)
 
 }
 
+/* FMC initialization function */
+static void MX_FMC_Init(void)
+{
+
+  /* USER CODE BEGIN FMC_Init 0 */
+
+  /* USER CODE END FMC_Init 0 */
+
+  FMC_SDRAM_TimingTypeDef SdramTiming = {0};
+
+  /* USER CODE BEGIN FMC_Init 1 */
+
+  /* USER CODE END FMC_Init 1 */
+
+  /** Perform the SDRAM1 memory initialization sequence
+  */
+  hsdram1.Instance = FMC_SDRAM_DEVICE;
+  /* hsdram1.Init */
+  hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
+  hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
+  hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_13;
+  hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
+  hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
+  hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_1;
+  hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
+  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_DISABLE;
+  hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_DISABLE;
+  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
+  /* SdramTiming */
+  SdramTiming.LoadToActiveDelay = 16;
+  SdramTiming.ExitSelfRefreshDelay = 16;
+  SdramTiming.SelfRefreshTime = 16;
+  SdramTiming.RowCycleDelay = 16;
+  SdramTiming.WriteRecoveryTime = 16;
+  SdramTiming.RPDelay = 16;
+  SdramTiming.RCDDelay = 16;
+
+  if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
+  {
+    Error_Handler( );
+  }
+
+  /* USER CODE BEGIN FMC_Init 2 */
+
+  /* USER CODE END FMC_Init 2 */
+}
+
 /**
   * @brief GPIO Initialization Function
   * @param None
@@ -430,12 +482,15 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOK_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pins : PK5 PK4 PK6 PK3
                            PK2 PK0 PK1 */
@@ -475,15 +530,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PH5 */
+#if 0
+Removed when added SDRAM...
+ /*Configure GPIO pin : PH5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
-  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA5 PA4 */
+  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);  /*Configure GPIO pins : PA5 PA4 */
+#endif
   GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
