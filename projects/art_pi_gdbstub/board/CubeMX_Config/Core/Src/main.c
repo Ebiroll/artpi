@@ -213,7 +213,9 @@ int main(void)
 
 
   // Check button press to do proper boot
-  //boot_uboot();
+  if (*(int *)0x90000000!=0) {
+    boot_uboot();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
