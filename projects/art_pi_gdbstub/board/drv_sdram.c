@@ -102,7 +102,7 @@ static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM
     HAL_SDRAM_ProgramRefreshRate(hsdram, SDRAM_REFRESH_COUNT);
 }
 
-static int SDRAM_Init(void)
+int SDRAM_Init(void)
 {
     int result = 1;
     FMC_SDRAM_TimingTypeDef SDRAM_Timing;
@@ -172,14 +172,14 @@ static int SDRAM_Init(void)
     /* Initialize the SDRAM controller */
     if (HAL_SDRAM_Init(&hsdram1, &SDRAM_Timing) != HAL_OK)
     {
-        LOG_E("SDRAM init failed!");
+        //LOG_E("SDRAM init failed!");
         result = -1;
     }
     else
     {
         /* Program the SDRAM external device */
         SDRAM_Initialization_Sequence(&hsdram1, &command);
-        LOG_D("sdram init success, mapped at 0x%X, size is %d bytes, data width is %d", SDRAM_BANK_ADDR, SDRAM_SIZE, SDRAM_DATA_WIDTH);
+        //LOG_D("sdram init success, mapped at 0x%X, size is %d bytes, data width is %d", SDRAM_BANK_ADDR, SDRAM_SIZE, SDRAM_DATA_WIDTH);
 #ifdef RT_USING_MEMHEAP_AS_HEAP
         /* If RT_USING_MEMHEAP_AS_HEAP is enabled, SDRAM is initialized to the heap */
         rt_memheap_init(&system_heap, "sdram", (void *)SDRAM_BANK_ADDR, SDRAM_SIZE);
@@ -188,7 +188,7 @@ static int SDRAM_Init(void)
 
     return result;
 }
-INIT_BOARD_EXPORT(SDRAM_Init);
+//INIT_BOARD_EXPORT(SDRAM_Init);
 
 #ifdef DRV_DEBUG
 #ifdef FINSH_USING_MSH
@@ -221,32 +221,32 @@ int sdram_test(void)
 #endif
     }
     time_cast = rt_tick_get() - start_time;
-    LOG_D("Write data success, total time: %d.%03dS.", time_cast / RT_TICK_PER_SECOND,
+    //LOG_D("Write data success, total time: %d.%03dS.", time_cast / RT_TICK_PER_SECOND,
           time_cast % RT_TICK_PER_SECOND / ((RT_TICK_PER_SECOND * 1 + 999) / 1000));
 
     /* read data */
-    LOG_D("start Reading and verifying data, waiting....");
+    //LOG_D("start Reading and verifying data, waiting....");
     for (i = 0; i < SDRAM_SIZE / data_width; i++)
     {
 #if SDRAM_DATA_WIDTH == 8
         data = *(__IO uint8_t *)(SDRAM_BANK_ADDR + i * data_width);
         if (data != 0x55)
         {
-            LOG_E("SDRAM test failed!");
+            //LOG_E("SDRAM test failed!");
             break;
         }
 #elif SDRAM_DATA_WIDTH == 16
         data = *(__IO uint16_t *)(SDRAM_BANK_ADDR + i * data_width);
         if (data != 0x5555)
         {
-            LOG_E("SDRAM test failed!");
+            //LOG_E("SDRAM test failed!");
             break;
         }
 #else
         data = *(__IO uint32_t *)(SDRAM_BANK_ADDR + i * data_width);
         if (data != 0x55555555)
         {
-            LOG_E("SDRAM test failed!");
+            //LOG_E("SDRAM test failed!");
             break;
         }
 #endif

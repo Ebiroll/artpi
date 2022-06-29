@@ -32,6 +32,7 @@ OPT = -Og
 BUILD_DIR = build
 
 #../../applications/gdb_if_cdc.c \
+#../../applications/gdb_if_serial.c \
 
 ######################################
 # source
@@ -46,7 +47,7 @@ Core/Src/stm32h7xx_hal_msp.c \
 ../../applications/w25qxx.c \
 ../../applications/gdb_main.c \
 ../../applications/gdb_packet.c \
-../../applications/gdb_if_serial.c \
+../../applications/gdb_if_cdc.c \
 ../../applications/platform.c \
 ../../applications/fake_adiv5.c \
 ../../applications/exception.c \

@@ -80,7 +80,7 @@ struct boot_rsp dummy_rsp;
 
 /* Private variables ---------------------------------------------------------*/
 
-QSPI_HandleTypeDef hqspi;
+extern QSPI_HandleTypeDef hqspi;
 
 UART_HandleTypeDef huart4;
 
@@ -193,6 +193,7 @@ int main(void)
   MX_UART4_Init();
   MX_QUADSPI_Init();
 // TODO, better qemu emulation,  MX_USB_DEVICE_Init();
+  MX_USB_DEVICE_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
 
@@ -201,15 +202,19 @@ int main(void)
   //uint8_t Test[] = "Disable ICache !!!\r\n"; //Data to send
   //HAL_UART_Transmit(&huart4,Test,sizeof(Test),21);// Sending in normal mode
 
-  SCB_DisableICache();
-  SCB_DisableDCache();
+  //SCB_DisableICache();
+  //SCB_DisableDCache();
+
+  SDRAM_Init();
+  mpu_init();
+
+
 
   // Map flash
   W25QXX_ExitQPIMode();
   W25QXX_Reset();
   W25Q_Memory_Mapped_Enable();
 
-   mpu_init();
 
 
   //uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
@@ -243,7 +248,7 @@ int main(void)
  
   while (1)
   {
-    #if 0
+    #if 1
     // gdb main task
     //main_task(NULL);
      uint8_t CounterText[6];
