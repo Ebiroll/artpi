@@ -611,13 +611,23 @@ static const char h7_memory_map[] =
 "  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"
 "  <memory type=\"ram\" start=\"0x30000000\" length=\"0x48000\"/> "
 "  <memory type=\"ram\" start=\"0x38000000\" length=\"0x10000\"/>  "
+"  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x2000000\"/>  "
 "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\"> "
+"    <property name=\"blocksize\">0x20000</property>  "
+"  </memory>  "
+"  <memory type=\"flash\" start=\"0x90000000\" length=\"0x600000\"> "
 "    <property name=\"blocksize\">0x20000</property>  "
 "  </memory>  "
 "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/> "
 "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/> "
 "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"
 "</memory-map>";
+
+/*
+	target_add_ram(t, 0xC0000000,  0x2000000);    //  External SDRAM 32MB 
+	// 16 Meg Flash W25Q64
+	stm32h7_add_quadspi_flash(t,0x90000000, 0x600000, FLASH_SECTOR_SIZE);
+*/
 
 static int stm32h7_flash_erase(struct target_flash *f, target_addr addr,
 							   size_t len);
@@ -799,6 +809,35 @@ static void stm32h7_add_flash(target *t,
 	target_add_flash(t, f);
 }
 
+
+
+static void stm32h7_add_quadspi_flash(target *t,
+                              uint32_t addr, size_t length, size_t blocksize)
+{
+	struct stm32h7_flash *sf = calloc(1, sizeof(*sf));
+	struct target_flash *f;
+
+	if (!sf) {			/* calloc failed: heap exhaustion */
+		DEBUG_WARN("calloc: failed in %s\n", __func__);
+		return;
+	}
+
+	f = &sf->f;
+	f->start = addr;
+	f->length = length;
+	f->blocksize = blocksize;
+	f->erase = stm32h7_flash_erase;
+	f->write = stm32h7_flash_write;
+	f->buf_size = 2048;
+	f->erased = 0xff;
+	sf->regbase = FPEC1_BASE;
+	if (addr >= BANK2_START)
+		sf->regbase = FPEC2_BASE;
+	sf->psize = ALIGN_DWORD;
+	target_add_flash(t, f);
+}
+
+
 static bool stm32h7_attach(target *t)
 {
 	if (!cortexm_attach(t))
@@ -826,6 +865,13 @@ static bool stm32h7_attach(target *t)
 	/* Add the flash to memory map. */
 	stm32h7_add_flash(t, 0x8000000, 0x100000, FLASH_SECTOR_SIZE);
 	stm32h7_add_flash(t, 0x8100000, 0x100000, FLASH_SECTOR_SIZE);
+
+	// Specific to the ART-Pi board
+	// 32Meg RAM
+	target_add_ram(t, 0xC0000000,  0x2000000);    /* External SDRAM 32MB */
+
+	// 16 Meg Flash W25Q64
+	stm32h7_add_quadspi_flash(t,0x90000000, 16*0x100000, FLASH_SECTOR_SIZE);
 	return true;
 }
 
