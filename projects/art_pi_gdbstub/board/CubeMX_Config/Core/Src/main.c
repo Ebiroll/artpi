@@ -192,7 +192,7 @@ int main(void)
   MX_GPIO_Init();
   MX_UART4_Init();
   MX_QUADSPI_Init();
-  MX_USB_DEVICE_Init();
+// TODO, better qemu emulation,  MX_USB_DEVICE_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
 
@@ -209,15 +209,19 @@ int main(void)
   W25QXX_Reset();
   W25Q_Memory_Mapped_Enable();
 
+   mpu_init();
+
 
   //uint8_t BootText[] = "Enter gdb-stub !!!\r\n"; //Data to send
   //HAL_UART_Transmit(&huart4,BootText,sizeof(BootText),13);// Sending in normal mode
 
 
   // Check button press to do proper boot
+  #ifdef NOT_NOW
   if (*(int *)0x90000000!=0) {
     boot_uboot();
   }
+  #endif
   /* USER CODE END 2 */
 
   /* Infinite loop */

@@ -10,12 +10,13 @@
 
 #include <board.h>
 
+#define BSP_USING_SDRAM  1
+
 #ifdef BSP_USING_SDRAM
 #include <sdram_port.h>
 
 #define DRV_DEBUG
 #define LOG_TAG             "drv.sdram"
-#include <drv_log.h>
 
 static SDRAM_HandleTypeDef hsdram1;
 static FMC_SDRAM_CommandTypeDef command;
@@ -103,7 +104,7 @@ static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM
 
 static int SDRAM_Init(void)
 {
-    int result = RT_EOK;
+    int result = 1;
     FMC_SDRAM_TimingTypeDef SDRAM_Timing;
 
     /* SDRAM device configuration */
@@ -172,7 +173,7 @@ static int SDRAM_Init(void)
     if (HAL_SDRAM_Init(&hsdram1, &SDRAM_Timing) != HAL_OK)
     {
         LOG_E("SDRAM init failed!");
-        result = -RT_ERROR;
+        result = -1;
     }
     else
     {

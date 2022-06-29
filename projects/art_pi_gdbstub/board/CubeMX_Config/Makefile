@@ -39,6 +39,8 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
+../drv_mpu.c \
+../drv_sdram.c \
 Core/Src/stm32h7xx_it.c \
 Core/Src/stm32h7xx_hal_msp.c \
 ../../applications/w25qxx.c \

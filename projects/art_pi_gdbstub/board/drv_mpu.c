@@ -7,7 +7,6 @@
  * Date           Author       Notes
  * 2019-04-14     whj4674672   first version
  */
-#include <rtthread.h>
 #include "stm32h7xx.h"
 #include "board.h"
 
@@ -109,7 +108,7 @@ int mpu_init(void)
     SCB_EnableICache();
     SCB_EnableDCache();
     
-    return RT_EOK;
+    return 1;
 
 }
 INIT_BOARD_EXPORT(mpu_init);
