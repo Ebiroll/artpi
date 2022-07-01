@@ -72,6 +72,11 @@ static uint64_t stm32h7x7_powermgt_read(void *opaque, hwaddr offset,
               <bitWidth>2</bitWidth>
               */
           break;
+
+         case 0x18:
+             res = s->offset_18;
+            break;
+
            case 0x28:
               res = s->rpcsr;
            break;
@@ -129,6 +134,10 @@ static void stm32h7x7_powermgt_write(void *opaque, hwaddr offset,
 */
     case 0xe8:
         s->hsem_lock = value;
+        break;
+
+    case 0x18:
+        s->offset_18 = value;
         break;
 
 
@@ -275,6 +284,9 @@ static void stm32h7x7_soc_initfn(Object *obj)
     s->refclk = qdev_init_clock_in(DEVICE(s), "refclk", NULL, NULL, 0);
 
     object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H7X7_POWERMGT);
+
+    object_initialize_child(obj, "flash", &s->flash_controller[1],TYPE_STM32H7XX_FLASH);
+
 
 }
 
@@ -565,6 +577,21 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     busdev = SYS_BUS_DEVICE(dev);
     sysbus_mmio_map(busdev, 0, 0x58024400);
 
+
+    // create_unimplemented_device("Flash",0x52002000,0x1400);
+
+    dev = DEVICE(&s->flash_controller[1]);
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->flash_controller[1]), errp)) {
+        return;
+    }
+    busdev = SYS_BUS_DEVICE(dev);
+    sysbus_mmio_map(busdev, 0, 0x52002000);
+
+
+
+
+
+
     //create_unimplemented_device("PWR_CRC_RCC",0x58024400,0xc00);
     // STM32H750_POWERMGT
 
@@ -690,7 +717,7 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     create_unimplemented_device("MPU",0xe000ed90,0x15);
     create_unimplemented_device("NVIC_STIR",0xe000ef00,0x5);
 
-    create_unimplemented_device("Flash",0x52002000,0x1400);
+    // create_unimplemented_device("Flash",0x52002000,0x1400);
     create_unimplemented_device("DBGMCU",0x5c001000,0x400);
 
     create_unimplemented_device("SWITCH_MATRIX",0x51008100,0x200);

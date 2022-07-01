@@ -74,11 +74,34 @@ struct STM32H7X7PowerMgtState {
     uint32_t cfg;
     uint32_t cfg2;
 
+    uint32_t offset_18;
+
+
+
     uint32_t rpcsr;
     uint32_t hsem_lock;
 
 
 };
+
+
+
+// ----------------- Flash registers
+
+
+#define TYPE_STM32H7XX_FLASH "stm32h7xx-flash"
+OBJECT_DECLARE_SIMPLE_TYPE(STM32H7XXFlashState, STM32H7XX_FLASH)
+
+struct STM32H7XXFlashState {
+    SysBusDevice busdev;
+    MemoryRegion iomem;
+
+    uint32_t acr;
+
+};
+
+
+
 
 
 // -------------------------
@@ -116,6 +139,8 @@ struct STM32H7X7State {
     MemoryRegion  RAM_D3;
 
     STM32H7X7PowerMgtState pwr;
+
+    STM32H7XXFlashState flash_controller[2];
 
     Clock *sysclk;
     Clock *refclk;
