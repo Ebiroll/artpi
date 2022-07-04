@@ -272,7 +272,7 @@ static void stm32h7x7_soc_initfn(Object *obj)
     }
 
     for (i = 0; i < STM_NUM_SPIS; i++) {
-        object_initialize_child(obj, "spi[*]", &s->spi[i], TYPE_STM32F2XX_SPI);
+        object_initialize_child(obj, "spi[*]", &s->spi[i], TYPE_STM32H7XX_SPI);
     }
 
    object_initialize_child(obj, "qspi", &s->qspi,TYPE_STM32_QSPI);
@@ -286,6 +286,11 @@ static void stm32h7x7_soc_initfn(Object *obj)
     object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H7X7_POWERMGT);
 
     object_initialize_child(obj, "flash", &s->flash_controller[1],TYPE_STM32H7XX_FLASH);
+
+    object_initialize_child(obj, "ltdc", &s->ltdc,TYPE_LTDC);
+
+
+
 
 
 }
@@ -588,6 +593,14 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
     sysbus_mmio_map(busdev, 0, 0x52002000);
 
 
+    dev = DEVICE(&s->ltdc);
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->ltdc), errp)) {
+        return;
+    }
+    busdev = SYS_BUS_DEVICE(dev);
+    sysbus_mmio_map(busdev, 0, 0x50001000);
+
+
 
 
 
@@ -690,7 +703,7 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 //    "","",""
    create_unimplemented_device("RAMECC2",0x48023000,0x400);
 //    create_unimplemented_device("DELAY_Block_SDMMC2",0x48022800,0x1000);
-    create_unimplemented_device("LTDC",0x50001000,0x1000);
+//    create_unimplemented_device("LTDC",0x50001000,0x1000);
     create_unimplemented_device("WWDG2",0x50003000,0x400);
     create_unimplemented_device("DMA2D_MDMA",0x52000000,0x1400);
     create_unimplemented_device("FMC_JPEG_QUADSPI",0x52003000,0x3000);
