@@ -35,6 +35,12 @@ So far with this qemu it hangs here common/board_f.c
      if (initcall_run_list(init_sequence_f)) 
        hang(); 
 
+## Errata
+ When starting a project with STM32CubeMX and want to use external RAM,
+ ![WIFI-OTA](./figures/FMC.png)
+You must change the FMC settings to use the external RAM.
+Also you must call SDRAM_Initialization_Sequence
+projects\art_pi_gdbstub\board\drv_sdram.c
 ## Arm simulator
 
 To fiddle with simple arm programs, 
@@ -55,7 +61,7 @@ https://cpulator.01xz.net/?sys=arm
 
 ## Some notes from running u-boot
 
-
+```
 When looking at the sources and reverse engineering the u-boot binary in
 /projects/art_pi_kboot/demo
 It seems like the Device tree blob should be located at,
@@ -192,8 +198,10 @@ When using qemu we can load u-boot and kernel
       <reloc_bloblist>, 
       <setup_reloc>, 
        <clear_bss>,
+```
 
 
+```
     u-boot Init call sequence
 
       board_init_f():
@@ -293,6 +301,7 @@ stm32h7xx_powermgt_read: Unknown offset 0x00000028
 {start_addr = 0xc0000000, region_no = 0x0, xn = 0x0, ap = 0x3, mr_attr = 0x5, reg_size = 0x1c}
 
 dm_init_and_scan()
+```
 
 
 # Qemu u-boot log 
@@ -766,7 +775,7 @@ Internal memory,
  ITCMRAM:         64 KB  
 
 
-From this mapping
+The following linker commands was changed from this mapping
 
 ROM (rx) : ORIGIN =0x90000000,LENGTH =8192k
 RAM (rw) : ORIGIN =0x24000000,LENGTH =512k
