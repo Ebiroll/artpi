@@ -96,7 +96,7 @@ uint8_t UART4_rxBuffer[12] = {0};
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
-static void MX_QUADSPI_Init(void);
+extern void MX_QUADSPI_Init(void);
 static void MX_FMC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -342,7 +342,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_QUADSPI_Init(void)
+static void MX_LOCAL_QUADSPI_Init(void)
 {
 
   /* USER CODE BEGIN QUADSPI_Init 0 */
