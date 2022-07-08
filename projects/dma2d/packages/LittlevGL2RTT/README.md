@@ -2,8 +2,14 @@
 
 https://en.chowdera.com/2022/04/202204020406556000.html
 
+Also compare to this,
+
+https://github.com/lvgl/lv_port_stm32h745i_disco
 
 
+And for free_rtos support, check out this.
+
+https://github.com/lvgl/lv_port_esp32
 
 # LittlevGL2RTT #
 [! [Building Status] (https://travis-ci.org/liu2guang/LittlevGL2RTT.svg?branch=master)] (https://travis-ci.org/liu2guang/LittlevGL2RTT)
