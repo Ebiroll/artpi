@@ -32,14 +32,13 @@
 #include "hw/adc/stm32f2xx_adc.h"
 #include "hw/misc/stm32f4xx_exti.h"
 #include "hw/or-irq.h"
-#include "hw/ssi/stm32h7xx_spi.h"
+#include "hw/ssi/stm32f2xx_spi.h"
 #include "hw/ssi/stm32_qspi.h"
 #include "hw/arm/armv7m.h"
 #include "qom/object.h"
-#include "hw/display/ltdc.h"
 
-#define TYPE_STM32H7X7_SOC "stm32h7x7-soc"
-OBJECT_DECLARE_SIMPLE_TYPE(STM32H7X7State, STM32H7X7_SOC)
+#define TYPE_STM32H7A3VIH_SOC "stm32h7a3vih-soc"
+OBJECT_DECLARE_SIMPLE_TYPE(STM32H7A3VIHState, STM32H7A3VIH_SOC)
 
 #define STM_NUM_USARTS 7
 #define STM_NUM_TIMERS 4
@@ -66,18 +65,14 @@ OBJECT_DECLARE_SIMPLE_TYPE(STM32H7X7State, STM32H7X7_SOC)
 
 
 #define TYPE_STM32H7X7_POWERMGT "stm32h7x7-power"
-OBJECT_DECLARE_SIMPLE_TYPE(STM32H7X7PowerMgtState, STM32H7X7_POWERMGT)
+OBJECT_DECLARE_SIMPLE_TYPE(STM32H7A3VIHPowerMgtState, STM32H7A3VIH_POWERMGT)
 
-struct STM32H7X7PowerMgtState {
+struct STM32H7A3VIHPowerMgtState {
     SysBusDevice busdev;
     MemoryRegion iomem;
 
     uint32_t cfg;
     uint32_t cfg2;
-
-    uint32_t offset_18;
-
-
 
     uint32_t rpcsr;
     uint32_t hsem_lock;
@@ -86,29 +81,10 @@ struct STM32H7X7PowerMgtState {
 };
 
 
-
-// ----------------- Flash registers
-
-
-#define TYPE_STM32H7XX_FLASH "stm32h7xx-flash"
-OBJECT_DECLARE_SIMPLE_TYPE(STM32H7XXFlashState, STM32H7XX_FLASH)
-
-struct STM32H7XXFlashState {
-    SysBusDevice busdev;
-    MemoryRegion iomem;
-
-    uint32_t acr;
-
-};
-
-
-
-
-
 // -------------------------
 
 
-struct STM32H7X7State {
+struct STM32H7A3VIHState {
     /*< private >*/
     SysBusDevice parent_obj;
     /*< public >*/
@@ -116,7 +92,6 @@ struct STM32H7X7State {
     char *cpu_type;
 
     ARMv7MState armv7m;
-    ARMv7MState armv4m;
 
 
     STM32F4xxSyscfgState syscfg;
@@ -125,7 +100,7 @@ struct STM32H7X7State {
     STM32F2XXTimerState timer[STM_NUM_TIMERS];
     qemu_or_irq adc_irqs;
     STM32F2XXADCState adc[STM_NUM_ADCS];
-    STM32H7XXSPIState spi[STM_NUM_SPIS];
+    STM32F2XXSPIState spi[STM_NUM_SPIS];
     STM32QSPIState qspi;
 
     MemoryRegion sram;
@@ -139,10 +114,7 @@ struct STM32H7X7State {
     MemoryRegion  RAM_D2;
     MemoryRegion  RAM_D3;
 
-    STM32H7X7PowerMgtState pwr;
-
-    STM32H7XXFlashState flash_controller[2];
-    LtdcState      ltdc;
+    STM32H7A3VIHPowerMgtState pwr;
 
     Clock *sysclk;
     Clock *refclk;

@@ -89,7 +89,7 @@ static void portenta_init(MachineState *machine)
 
 //        cpu_physical_memory_write(0x08000000, rom_binary, 83576);
 
-        int size = load_image_targphys_as(rom_binary, 0x08000000, 83576, CPU(&s->armv7m)->as);
+        int size = load_image_targphys_as(rom_binary, 0x08000000, 502672 /*359224*/, CPU(&s->armv7m)->as);
         if (size < 0) {
             error_report("Error: could not load bootloader.bin binary '%s'", rom_binary);
             exit(1);
