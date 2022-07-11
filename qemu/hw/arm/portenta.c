@@ -41,6 +41,22 @@
 /* Main SYSCLK frequency in Hz (168MHz) */
 #define SYSCLK_FRQ 240000000ULL
 
+int get_filesize(const char *filename)
+{
+    FILE *fp;
+    int size;
+
+    fp = fopen(filename, "rb");
+    if (!fp) {
+        return -1;
+    }
+    fseek(fp, 0, SEEK_END);
+    size = ftell(fp);
+    fclose(fp);
+    return size;
+}
+
+
 static void portenta_init(MachineState *machine)
 {
     DeviceState *dev;
@@ -87,9 +103,11 @@ static void portenta_init(MachineState *machine)
             exit(1);
         }
 
+        int file_size=get_filesize(rom_binary);
+
 //        cpu_physical_memory_write(0x08000000, rom_binary, 83576);
 
-        int size = load_image_targphys_as(rom_binary, 0x08000000, 502672 /*359224*/, CPU(&s->armv7m)->as);
+        int size = load_image_targphys_as(rom_binary, 0x08000000, file_size, CPU(&s->armv7m)->as);
         if (size < 0) {
             error_report("Error: could not load bootloader.bin binary '%s'", rom_binary);
             exit(1);
