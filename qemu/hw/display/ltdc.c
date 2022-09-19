@@ -221,7 +221,9 @@ static uint64_t ltdc_read(void *opaque, hwaddr offset,
                 " %d\n", offset,res);
                 // RCC_FLAG_HSERDY
         break;
-
+        case 0x00000048:
+            res = 0xffffffff;
+            break;
 
     default:
         qemu_log_mask(LOG_UNIMP,

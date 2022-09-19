@@ -29,14 +29,13 @@
 #include "hw/qdev-properties.h"
 #include "hw/qdev-clock.h"
 #include "qemu/error-report.h"
-#include "qemu-common.h"
 #include "hw/arm/stm32h750_soc.h"
 #include "qemu/module.h"
 #include "hw/arm/boot.h"
 #include "hw/core/generic-loader.h"
 #include "target/arm/cpu.h"
 #include "qom/object.h"
-
+#include "hw/loader.h"
 
 /* Main SYSCLK frequency in Hz (168MHz) */
 #define SYSCLK_FRQ 240000000ULL
@@ -104,7 +103,7 @@ static void artpi_init(MachineState *machine)
             exit(1);
         }
 
-        int file_size=get_filesize(rom_binary)
+        int file_size=get_filesize(rom_binary);
 
 //        cpu_physical_memory_write(0x08000000, rom_binary, 83576);
 

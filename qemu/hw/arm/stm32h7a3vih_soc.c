@@ -37,29 +37,48 @@
 
 
 
-static uint64_t stm32h7x7_powermgt_read(void *opaque, hwaddr offset,
+static uint64_t stm32h7xa3_powermgt_read(void *opaque, hwaddr offset,
                                       unsigned size)
 {
-    STM32H7X7PowerMgtState *s = (STM32H7X7PowerMgtState *)opaque;
+    STM32H7A3VIHPowerMgtState *s = (STM32H7A3VIHPowerMgtState *)opaque;
     uint32_t res = 0;
 
     switch (offset) {
           case 0x0:
             res = s->cfg;
             static char bit_num=0;
+            res= res | 1 |  (16384  |  (1 << bit_num));
             bit_num = bit_num +1;
             if (bit_num == 32) {
                 bit_num=0;
             }
-            res= (16384 | (1 << bit_num));
 
             qemu_log_mask(LOG_UNIMP,
-                "stm32h7x7_powermgt_read: cfg offset 0x%08"HWADDR_PRIx
+                "stm32h7xa3_powermgt_read: cfg offset 0x%08"HWADDR_PRIx
                 " %d\n", offset,res);
+                break;
                 // RCC_FLAG_HSERDY
-        break;
+        case 0x00000074:
+                //s->csr = (1 << 0x61);
+                res = s->csr;
+
+                static char scr_bit_num=0;
+                res= (res | (1 << scr_bit_num));
+
+                scr_bit_num = scr_bit_num +1;
+                if (scr_bit_num == 32) {
+                    scr_bit_num=0;
+                }
+
+                qemu_log_mask(LOG_UNIMP,
+                    "stm32h7xa3_powermgt_read: HSI-STATUS offset 0x%08"HWADDR_PRIx
+                    " %d\n", offset,res);
+                break;
 
             case 0x10:
+                qemu_log_mask(LOG_UNIMP,
+                        "stm32h7xa3_powermgt_read: cfgr 0x%08"HWADDR_PRIx
+                        "\n", offset);
             res= s->cfg2;
           /*
              <name>SVOS</name>
@@ -93,7 +112,7 @@ static uint64_t stm32h7x7_powermgt_read(void *opaque, hwaddr offset,
 
     default:
         qemu_log_mask(LOG_UNIMP,
-                      "stm32h7x7_powermgt_read: Unknown offset 0x%08"HWADDR_PRIx
+                      "stm32h7xa3_powermgt_read: Unknown offset 0x%08"HWADDR_PRIx
                       "\n", offset);
         res = 0;
         break;
@@ -102,26 +121,48 @@ static uint64_t stm32h7x7_powermgt_read(void *opaque, hwaddr offset,
     return res;
 }
 
-static void stm32h7x7_powermgt_write(void *opaque, hwaddr offset,
+static void stm32h7xa3_powermgt_write(void *opaque, hwaddr offset,
                                    uint64_t value, unsigned size)
 {
-    STM32H7X7PowerMgtState *s = (STM32H7X7PowerMgtState *)opaque;
+    STM32H7A3VIHPowerMgtState *s = (STM32H7A3VIHPowerMgtState *)opaque;
 
 
     switch (offset) {
         case 0:
-        qemu_log_mask(LOG_UNIMP,
-                "stm32h7x7_powermgt_write: CFG\n");
+            qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: CFG, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,value);
+            if (value & (1 << 24)) {
+                       qemu_log_mask(LOG_UNIMP,
+                      "stm32h7xa3_powermgt_write: PLL ON 0x%08"HWADDR_PRIx
+                      "\n", offset);
+                      value= value | (1 << 25);
+            } else {
+                qemu_log_mask(LOG_UNIMP,
+                "stm32h7xa3_powermgt_write: PLL OFF 0x%08"HWADDR_PRIx
+                "\n", offset);
+                value=  value & ~(1 << 25);
+            }
+
         s->cfg = value;
         break;
         case 0x10:
-           s->cfg2=value;
+        {
+            uint64_t source= value & ~0xfffffff8;
+            s->cfg2=(value & 0xfffffff8 ) | source * 8 ;
+            qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: CFGR, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,value);
+            qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: CFGR, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,source);
+        }
         break;
 
         /* 0x58024400
         // HSEM Read lock register
         tm32h7xx_powermgt_read: Unknown offset 0x000000e8
-        stm32h7x7_powermgt_write: Unknown offset 0x000000e8
+        stm32h7xa3_powermgt_write: Unknown offset 0x000000e8
 
 
         RCC PLLs Clock Source Selection
@@ -136,78 +177,85 @@ static void stm32h7x7_powermgt_write(void *opaque, hwaddr offset,
         s->rpcsr = value;
         break;
 
+    case 0x00000074:
+        s->csr = value;
+        qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: RCC Clock Control and Status, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,value);
+
+        break;
     //case R_WDOG:
     //    qemu_log_mask(LOG_UNIMP,
-    //                  "stm32h7x7_powermgt_write: WDOG\n");
+    //                  "stm32h7xa3_powermgt_write: WDOG\n");
     //    s->wdog = value;
     //    break;
 
     default:
         qemu_log_mask(LOG_UNIMP,
-                      "stm32h7x7_powermgt_write: Unknown offset 0x%08"HWADDR_PRIx
+                      "stm32h7xa3_powermgt_write: Unknown offset 0x%08"HWADDR_PRIx
                       "\n", offset);
         break;
     }
 }
 
-static const MemoryRegionOps stm32h7x7_powermgt_ops = {
-    .read = stm32h7x7_powermgt_read,
-    .write = stm32h7x7_powermgt_write,
+static const MemoryRegionOps stm32h7xa3_powermgt_ops = {
+    .read = stm32h7xa3_powermgt_read,
+    .write = stm32h7xa3_powermgt_write,
     .endianness = DEVICE_NATIVE_ENDIAN,
     .impl.min_access_size = 4,
     .impl.max_access_size = 4,
 };
 
-static const VMStateDescription vmstate_stm32h7x7_powermgt = {
-    .name = TYPE_STM32H7X7_POWERMGT,
+static const VMStateDescription vmstate_stm32h7xa3_powermgt = {
+    .name = TYPE_STM32H7A3VIH_POWERMGT,
     .version_id = 1,
     .minimum_version_id = 1,
     .fields = (VMStateField[]) {
-        VMSTATE_UINT32(cfg, STM32H7X7PowerMgtState),
+        VMSTATE_UINT32(cfg, STM32H7A3VIHPowerMgtState),
         VMSTATE_END_OF_LIST()
     }
 };
 
-static void stm32h7x7_powermgt_init(Object *obj)
+static void stm32h7xa3_powermgt_init(Object *obj)
 {
-    STM32H7X7PowerMgtState *s = STM32H7X7_POWERMGT(obj);
+    STM32H7A3VIHPowerMgtState *s = STM32H7A3VIH_POWERMGT(obj);
 
-    memory_region_init_io(&s->iomem, obj, &stm32h7x7_powermgt_ops, s,
-                          TYPE_STM32H7X7_POWERMGT, 0xc00);
+    memory_region_init_io(&s->iomem, obj, &stm32h7xa3_powermgt_ops, s,
+                          TYPE_STM32H7A3VIH_POWERMGT, 0xc00);
     sysbus_init_mmio(SYS_BUS_DEVICE(s), &s->iomem);
 }
 
-static void stm32h7x7_powermgt_reset(DeviceState *dev)
+static void stm32h7xa3_powermgt_reset(DeviceState *dev)
 {
-    STM32H7X7PowerMgtState *s = STM32H7X7_POWERMGT(dev);
+    STM32H7A3VIHPowerMgtState *s = STM32H7A3VIH_POWERMGT(dev);
 
     s->cfg = 0x00000000;
     s->rpcsr = 0x02020200;
     s->hsem_lock=0;
 }
 
-static void stm32h7x7_powermgt_class_init(ObjectClass *klass, void *data)
+static void stm32h7xa3_powermgt_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->reset = stm32h7x7_powermgt_reset;
-    dc->vmsd = &vmstate_stm32h7x7_powermgt;
+    dc->reset = stm32h7xa3_powermgt_reset;
+    dc->vmsd = &vmstate_stm32h7xa3_powermgt;
 }
 
-static const TypeInfo stm32h7x7_powermgt_info = {
-    .name          = TYPE_STM32H7X7_POWERMGT,
+static const TypeInfo stm32h7xa3_powermgt_info = {
+    .name          = TYPE_STM32H7A3VIH_POWERMGT,
     .parent        = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(STM32H7X7PowerMgtState),
-    .class_init    = stm32h7x7_powermgt_class_init,
-    .instance_init = stm32h7x7_powermgt_init,
+    .instance_size = sizeof(STM32H7A3VIHPowerMgtState),
+    .class_init    = stm32h7xa3_powermgt_class_init,
+    .instance_init = stm32h7xa3_powermgt_init,
 };
 
-static void stm32h7x7_powermgt_register_types(void)
+static void stm32h7xa3_powermgt_register_types(void)
 {
-    type_register_static(&stm32h7x7_powermgt_info);
+    type_register_static(&stm32h7xa3_powermgt_info);
 }
 
-type_init(stm32h7x7_powermgt_register_types)
+type_init(stm32h7xa3_powermgt_register_types)
 
 
 
@@ -217,13 +265,27 @@ type_init(stm32h7x7_powermgt_register_types)
 
 
 #define SYSCFG_ADD                     0x40013800
+
+//static const uint32_t usart_addr[] = { 0x40011000, 0x40004400, 0x40004800,
+//                                       0x40004C00, 0x40005000, 0x40011400,
+//                                       0x40007800, 0x40007C00 };
+
+
 static const uint32_t usart_addr[] = { 0x40011000, 0x40004400, 0x40004800,
                                        0x40004C00, 0x40005000, 0x40011400,
-                                       0x40007800, 0x40007C00 };
+                                       0x40007800, 0x40007C00 ,0x40011800};
+                                       // 0x40011800
 /* At the moment only Timer 2 to 5 are modelled */
 // CC Internal Clock Source Calibration , 0x40000000
-static const uint32_t timer_addr[] = { 0x40000000, 0x40000400,
-                                       0x40000800, 0x40000C00 };
+static const uint32_t timer_addr[] = { 0x40000000, 0x40000400,  // 2-3
+                                       0x40000800, 0x40000C00,
+                                       0x40000C00, 0x40001400, // 6-7
+                                       0x40010400,0x40010400,  // 8-9
+                                       0x40002400,0x40003400,  // 10-11
+                                       0x40001800,0x40001800,  // 12-13
+                                       0x40004400,0x40014000,  // 14-15
+                                       0x40014400,0x40014800,  // 16-17
+                                       0x40005400 };
 static const uint32_t adc_addr[] = { 0x40012000, 0x40012100, 0x40012200,
                                      0x40012300, 0x40012400, 0x40012500 };
 static const uint32_t spi_addr[] =   { 0x40013000, 0x40003800, 0x40003C00,
@@ -231,17 +293,18 @@ static const uint32_t spi_addr[] =   { 0x40013000, 0x40003800, 0x40003C00,
 #define EXTI_ADDR                      0x40013C00
 
 #define SYSCFG_IRQ               71
-static const int usart_irq[] = { 37, 38, 39, 52, 53, 71, 82, 83 };
-static const int timer_irq[] = { 28, 29, 30, 50 };
+static const int usart_irq[] = { 37, 38, 39, 52, 53, 71, 82, 83 ,71, 82};
+static const int timer_irq[] = { 28, 29, 30, 50 ,54, 55, 15, 9,10,11,12,13,14,15,17,18};
+//static const int timer_irq[] = { 28, 29, 30, 50 ,54, 55, 115, 9,10,11,12,13,14,15,117,118};
 #define ADC_IRQ 18
 static const int spi_irq[] =   { 35, 36, 51, 0, 0, 0 };
 static const int exti_irq[] =  { 6, 7, 8, 9, 10, 23, 23, 23, 23, 23, 40,
                                  40, 40, 40, 40, 40} ;
 
 
-static void stm32h7x7_soc_initfn(Object *obj)
+static void stm32h7xa3_soc_initfn(Object *obj)
 {
-    STM32H7X7State *s = STM32H7X7_SOC(obj);
+    STM32H7A3VIHState *s = STM32H7A3VIH_SOC(obj);
     int i;
 
     object_initialize_child(obj, "armv7m", &s->armv7m, TYPE_ARMV7M);
@@ -263,7 +326,7 @@ static void stm32h7x7_soc_initfn(Object *obj)
     }
 
     for (i = 0; i < STM_NUM_SPIS; i++) {
-        object_initialize_child(obj, "spi[*]", &s->spi[i], TYPE_STM32F2XX_SPI);
+        object_initialize_child(obj, "spi[*]", &s->spi[i], TYPE_STM32H7XX_SPI);
     }
 
    object_initialize_child(obj, "qspi", &s->qspi,TYPE_STM32_QSPI);
@@ -274,13 +337,18 @@ static void stm32h7x7_soc_initfn(Object *obj)
     s->sysclk = qdev_init_clock_in(DEVICE(s), "sysclk", NULL, NULL, 0);
     s->refclk = qdev_init_clock_in(DEVICE(s), "refclk", NULL, NULL, 0);
 
-    object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H7X7_POWERMGT);
+    object_initialize_child(obj, "pwr_crc", &s->pwr,TYPE_STM32H7A3VIH_POWERMGT);
+
+    object_initialize_child(obj, "flash", &s->flash_controller[1],TYPE_STM32H7XX_FLASH);
+
+    object_initialize_child(obj, "ltdc", &s->ltdc,TYPE_LTDC);
+
 
 }
 
-static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
+static void stm32h7xa3_soc_realize(DeviceState *dev_soc, Error **errp)
 {
-    STM32H7X7State *s = STM32H7X7_SOC(dev_soc);
+    STM32H7A3VIHState *s = STM32H7A3VIH_SOC(dev_soc);
     MemoryRegion *system_memory = get_system_memory();
     DeviceState *dev, *armv7m;
     SysBusDevice *busdev;
@@ -311,30 +379,32 @@ static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
     clock_set_mul_div(s->refclk, 8, 1);
     clock_set_source(s->refclk, s->sysclk);
 
+
     // In order to be able to load elf file, set as ram
-    memory_region_init_ram(&s->flash, OBJECT(dev_soc), "STM32H750.flash",
+    memory_region_init_ram(&s->flash, OBJECT(dev_soc), "STM32H7A3.flash",
                            FLASH_SIZE, &err);
     if (err != NULL) {
         error_propagate(errp, err);
         return;
     }
     memory_region_init_alias(&s->flash_alias, OBJECT(dev_soc),
-                             "STM32H750.flash.alias", &s->flash, 0,
+                             "STM32H7A3.flash.alias", &s->flash, 0,
                              FLASH_SIZE);
 
     memory_region_add_subregion(system_memory, FLASH_BASE_ADDRESS, &s->flash);
     memory_region_add_subregion(system_memory, 0, &s->flash_alias);
-
-    memory_region_init_ram(&s->sram, OBJECT(dev_soc), "STM32H750.sram", SRAM_SIZE,
+/*
+    memory_region_init_ram(&s->sram, OBJECT(dev_soc), "STM32H7A3.sram", SRAM_SIZE,
                            &err);
     if (err != NULL) {
         error_propagate(errp, err);
         return;
     }
     memory_region_add_subregion(system_memory, SRAM_BASE_ADDRESS, &s->sram);
+*/
 
 
-// 0x24000938
+
 
 
 // 512 KB
@@ -345,11 +415,9 @@ static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
 // Stack start     0x24044440
 //                 0x24000938
 
-    memory_region_init_ram(&s->DTC_RAM, OBJECT(dev_soc), "STM32H750.DTC_RAM",
+    memory_region_init_ram(&s->DTC_RAM, OBJECT(dev_soc), "STM32H7A3.DTC_RAM",
                             0x20000, &err);
 
-    //                      invalid             0x24000938
-    // From qemu bootloader
     memory_region_add_subregion(system_memory, 0x20000000, &s->DTC_RAM);
 
     if (err != NULL) {
@@ -357,35 +425,48 @@ static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
         return;
     }
 
+    memory_region_init_ram(&s->RAM, OBJECT(dev_soc), "STM32H7A3.RAM",
+                            0x100000, &err);
 
-    memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H750.RAM_D1",
-                            0x80000, &err);
-
-    //                      invalid             0x24000938
-    // From qemu bootloader
-    memory_region_add_subregion(system_memory, 0x24000000, &s->RAM_D1);
-
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
-
-    memory_region_init_ram(&s->RAM_D2, OBJECT(dev_soc), "STM32H750.RAM_D2",
-                            0x93000, &err);
-
-    // From qemu bootloader
-    memory_region_add_subregion(system_memory, 0x30000000, &s->RAM_D2);
+    memory_region_add_subregion(system_memory, 0x24000000, &s->RAM);
+                                             //  0x240fff8c
+                                             //    0x100000
 
     if (err != NULL) {
         error_propagate(errp, err);
         return;
     }
 
-    memory_region_init_ram(&s->RAM_D3, OBJECT(dev_soc), "STM32H750.RAM_D3",
-                            0x10000, &err);
+    /*
+    cileva_stm32h7xa3_soc_init(void)
+
+        ITCMRAM (xrw)  : ORIGIN = 0x00000000, LENGTH = 64K
+        FLASH (rx)     : ORIGIN = 0x08000000, LENGTH = 2048K
+        DTCMRAM1 (xrw) : ORIGIN = 0x20000000, LENGTH = 64K
+        DTCMRAM2 (xrw) : ORIGIN = 0x20010000, LENGTH = 64K
+
+        RAM (xrw)      : ORIGIN = 0x24000000, LENGTH = 1024K
+        RAM_CD (xrw)   : ORIGIN = 0x30000000, LENGTH = 128K
+        RAM_SRD (xrw)  : ORIGIN = 0x38000000, LENGTH = 32K
+   */
+
+
+    memory_region_init_ram(&s->RAM_CD, OBJECT(dev_soc), "STM32H7A3.RAM_CD",
+                            0x20000, &err);
 
     // From qemu bootloader
-    memory_region_add_subregion(system_memory, 0x38000000, &s->RAM_D3);
+    memory_region_add_subregion(system_memory, 0x30000000, &s->RAM_CD);
+
+    if (err != NULL) {
+        error_propagate(errp, err);
+        return;
+    }
+
+    memory_region_init_ram(&s->RAM_SRD, OBJECT(dev_soc), "STM32H7A3.RAM_SRD",
+                            0x8000, &err);
+
+    // From qemu bootloader
+    memory_region_add_subregion(system_memory, 0x38000000, &s->RAM_SRD);
 
     if (err != NULL) {
         error_propagate(errp, err);
@@ -394,6 +475,20 @@ static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
 
 
 /*
+
+cileva_stm32h7xa3_soc_init(void)
+
+  ITCMRAM (xrw)  : ORIGIN = 0x00000000, LENGTH = 64K
+  FLASH (rx)     : ORIGIN = 0x08000000, LENGTH = 2048K
+  DTCMRAM1 (xrw) : ORIGIN = 0x20000000, LENGTH = 64K
+  DTCMRAM2 (xrw) : ORIGIN = 0x20010000, LENGTH = 64K
+  RAM (xrw)      : ORIGIN = 0x24000000, LENGTH = 1024K
+  RAM_CD (xrw)   : ORIGIN = 0x30000000, LENGTH = 128K
+  RAM_SRD (xrw)  : ORIGIN = 0x38000000, LENGTH = 32K
+
+
+was
+
 DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
 RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 512K
 RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 288K
@@ -481,7 +576,7 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
         sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(armv7m, usart_irq[i]));
     }
 
-    /* Timer 2 to 5 */
+    /* Timer 2 to 17 */
     for (i = 0; i < STM_NUM_TIMERS; i++) {
         dev = DEVICE(&(s->timer[i]));
         qdev_prop_set_uint64(dev, "clock-frequency", 1000000000);
@@ -567,6 +662,22 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 
     //create_unimplemented_device("PWR_CRC_RCC",0x58024400,0xc00);
     // STM32H750_POWERMGT
+
+
+    // flashcontroller
+    dev = DEVICE(&s->flash_controller[1]);
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->flash_controller[1]), errp)) {
+        return;
+    }
+    busdev = SYS_BUS_DEVICE(dev);
+    sysbus_mmio_map(busdev, 0, 0x52002000);
+
+    dev = DEVICE(&s->ltdc);
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->ltdc), errp)) {
+        return;
+    }
+    busdev = SYS_BUS_DEVICE(dev);
+    sysbus_mmio_map(busdev, 0, 0x50001000);
 
 /*
     f4xx
@@ -859,31 +970,31 @@ ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 
 }
 
-static Property stm32h7x7_soc_properties[] = {
-    DEFINE_PROP_STRING("cpu-type", STM32H7X7State, cpu_type),
+static Property stm32h7xa3_soc_properties[] = {
+    DEFINE_PROP_STRING("cpu-type", STM32H7A3VIHState, cpu_type),
     DEFINE_PROP_END_OF_LIST(),
 };
 
-static void stm32h7x7_soc_class_init(ObjectClass *klass, void *data)
+static void stm32h7xa3_soc_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->realize = stm32h7x7_soc_realize;
-    device_class_set_props(dc, stm32h7x7_soc_properties);
+    dc->realize = stm32h7xa3_soc_realize;
+    device_class_set_props(dc, stm32h7xa3_soc_properties);
     /* No vmstate or reset required: device has no internal state */
 }
 
-static const TypeInfo stm32h7x7_soc_info = {
-    .name          = TYPE_STM32H7X7_SOC,
+static const TypeInfo stm32h7xa3_soc_info = {
+    .name          = TYPE_STM32H7A3VIH_SOC,
     .parent        = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(STM32H7X7State),
-    .instance_init = stm32h7x7_soc_initfn,
-    .class_init    = stm32h7x7_soc_class_init,
+    .instance_size = sizeof(STM32H7A3VIHState),
+    .instance_init = stm32h7xa3_soc_initfn,
+    .class_init    = stm32h7xa3_soc_class_init,
 };
 
-static void stm32h7x7_soc_types(void)
+static void stm32h7xa3_soc_types(void)
 {
-    type_register_static(&stm32h7x7_soc_info);
+    type_register_static(&stm32h7xa3_soc_info);
 }
 
-type_init(stm32h7x7_soc_types)
+type_init(stm32h7xa3_soc_types)

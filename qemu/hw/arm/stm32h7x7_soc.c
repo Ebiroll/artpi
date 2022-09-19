@@ -375,8 +375,8 @@ static void stm32h7x7_soc_realize(DeviceState *dev_soc, Error **errp)
     }
 
 
-    memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H750.RAM_D1",
-                            0x80000, &err);
+    memory_region_init_ram(&s->RAM_D1, OBJECT(dev_soc), "STM32H7XX.RAM_D1",
+                            0x1000000, &err);
 
     //                      invalid             0x24000938
     // From qemu bootloader

@@ -31,7 +31,7 @@
 #include "qemu/module.h"
 
 #ifndef STM_USART_ERR_DEBUG
-#define STM_USART_ERR_DEBUG 0
+#define STM_USART_ERR_DEBUG 5
 #endif
 
 #define DB_PRINT_L(lvl, fmt, args...) do { \

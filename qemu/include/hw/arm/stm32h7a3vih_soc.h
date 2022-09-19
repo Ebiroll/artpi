@@ -23,8 +23,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef HW_ARM_STM32H7X7_SOC_H
-#define HW_ARM_STM32H7X7_SOC_H
+#ifndef HW_ARM_STM32H7A3_SOC_H
+#define HW_ARM_STM32H7A3_SOC_H
 
 #include "hw/misc/stm32f4xx_syscfg.h"
 #include "hw/timer/stm32f2xx_timer.h"
@@ -32,23 +32,24 @@
 #include "hw/adc/stm32f2xx_adc.h"
 #include "hw/misc/stm32f4xx_exti.h"
 #include "hw/or-irq.h"
-#include "hw/ssi/stm32f2xx_spi.h"
+#include "hw/ssi/stm32h7xx_spi.h"
 #include "hw/ssi/stm32_qspi.h"
 #include "hw/arm/armv7m.h"
 #include "qom/object.h"
+#include "hw/display/ltdc.h"
+
 
 #define TYPE_STM32H7A3VIH_SOC "stm32h7a3vih-soc"
 OBJECT_DECLARE_SIMPLE_TYPE(STM32H7A3VIHState, STM32H7A3VIH_SOC)
 
-#define STM_NUM_USARTS 7
-#define STM_NUM_TIMERS 4
+#define STM_NUM_USARTS 9
+#define STM_NUM_TIMERS 16
 #define STM_NUM_ADCS 6
 #define STM_NUM_SPIS 6
 
 #define FLASH_BASE_ADDRESS 0x08000000
 #define FLASH_SIZE 8 * (1024 * 1024)
 #define SRAM_BASE_ADDRESS 0x20000000
-//#define SRAM_SIZE (192 * 1024)
 #define SRAM_SIZE 8 * (1024 * 1024)
 
 
@@ -64,7 +65,7 @@ OBJECT_DECLARE_SIMPLE_TYPE(STM32H7A3VIHState, STM32H7A3VIH_SOC)
 // ----------------- PWR_CRC_RCC
 
 
-#define TYPE_STM32H7X7_POWERMGT "stm32h7x7-power"
+#define TYPE_STM32H7A3VIH_POWERMGT "stm32h7a3-power"
 OBJECT_DECLARE_SIMPLE_TYPE(STM32H7A3VIHPowerMgtState, STM32H7A3VIH_POWERMGT)
 
 struct STM32H7A3VIHPowerMgtState {
@@ -73,10 +74,26 @@ struct STM32H7A3VIHPowerMgtState {
 
     uint32_t cfg;
     uint32_t cfg2;
+    uint32_t csr;
+
 
     uint32_t rpcsr;
     uint32_t hsem_lock;
 
+
+};
+
+// ----------------- Flash registers
+
+
+#define TYPE_STM32H7XX_FLASH "stm32h7xx-flash"
+OBJECT_DECLARE_SIMPLE_TYPE(STM32H7XXFlashState, STM32H7XX_FLASH)
+
+struct STM32H7XXFlashState {
+    SysBusDevice busdev;
+    MemoryRegion iomem;
+
+    uint32_t acr;
 
 };
 
@@ -100,7 +117,7 @@ struct STM32H7A3VIHState {
     STM32F2XXTimerState timer[STM_NUM_TIMERS];
     qemu_or_irq adc_irqs;
     STM32F2XXADCState adc[STM_NUM_ADCS];
-    STM32F2XXSPIState spi[STM_NUM_SPIS];
+    STM32H7XXSPIState spi[STM_NUM_SPIS];
     STM32QSPIState qspi;
 
     MemoryRegion sram;
@@ -110,11 +127,14 @@ struct STM32H7A3VIHState {
 
     MemoryRegion dram;
     MemoryRegion  DTC_RAM;
-    MemoryRegion  RAM_D1;
-    MemoryRegion  RAM_D2;
-    MemoryRegion  RAM_D3;
+    MemoryRegion  RAM;
+    MemoryRegion  RAM_CD;
+    MemoryRegion  RAM_SRD;
 
     STM32H7A3VIHPowerMgtState pwr;
+
+    STM32H7XXFlashState flash_controller[2];
+    LtdcState      ltdc;
 
     Clock *sysclk;
     Clock *refclk;

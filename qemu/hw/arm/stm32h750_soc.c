@@ -59,8 +59,12 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
                 // RCC_FLAG_HSERDY
         break;
 
-            case 0x10:
+          case 0x10:
+                qemu_log_mask(LOG_UNIMP,
+                        "stm32h7xa3_powermgt_read: cfgr 0x%08"HWADDR_PRIx
+                        "\n", offset);
             res= s->cfg2;
+        break;
           /*
              <name>SVOS</name>
               <description>System Stop mode voltage scaling
@@ -71,7 +75,6 @@ static uint64_t stm32h7xx_powermgt_read(void *opaque, hwaddr offset,
               <bitOffset>14</bitOffset>
               <bitWidth>2</bitWidth>
               */
-          break;
            case 0x28:
               res = s->rpcsr;
            break;
@@ -115,7 +118,16 @@ static void stm32h7xx_powermgt_write(void *opaque, hwaddr offset,
         s->cfg = value;
         break;
         case 0x10:
-           s->cfg2=value;
+        {
+            uint64_t source= value & ~0xfffffff8;
+            s->cfg2=(value & 0xfffffff8 ) | source * 8 ;
+            qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: CFGR, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,value);
+            qemu_log_mask(LOG_UNIMP,
+            "stm32h7xa3_powermgt_write: CFGR, offset 0x%08"HWADDR_PRIx
+            " %d\n", offset,source);
+        }
         break;
 
         /* 0x58024400

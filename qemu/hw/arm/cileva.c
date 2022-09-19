@@ -1,7 +1,7 @@
 /*
  * ART-PI Machine Model
  *
- * Copyright (c) 2014 Alistair Francis <alistair@alistair23.me>
+ * Copyright (c) 2022 Olof Astrand <olof.astrand@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 #include "hw/qdev-properties.h"
 #include "hw/qdev-clock.h"
 #include "qemu/error-report.h"
-#include "hw/arm/stm32h7x7_soc.h"
+#include "hw/arm/stm32h7a3vih_soc.h"
 #include "qemu/module.h"
 #include "hw/arm/boot.h"
 #include "hw/core/generic-loader.h"
@@ -57,7 +57,7 @@ static int get_my_filesize(const char *filename)
 }
 
 
-static void portenta_init(MachineState *machine)
+static void cileva_init(MachineState *machine)
 {
     DeviceState *dev;
     Clock *sysclk;
@@ -67,15 +67,14 @@ static void portenta_init(MachineState *machine)
     sysclk = clock_new(OBJECT(machine), "SYSCLK");
     clock_set_hz(sysclk, SYSCLK_FRQ);
 
-    dev = qdev_new(TYPE_STM32H7X7_SOC);
+    dev = qdev_new(TYPE_STM32H7A3VIH_SOC);
     qdev_prop_set_string(dev, "cpu-type", ARM_CPU_TYPE_NAME("cortex-m7"));
     qdev_connect_clock_in(dev, "sysclk", sysclk);
     sysbus_realize_and_unref(SYS_BUS_DEVICE(dev), &error_fatal);
 
 
-#if 1
 {
-    STM32H7X7State *s = STM32H7X7_SOC(dev);
+    STM32H7A3VIHState *s = STM32H7A3VIH_SOC(dev);
     CPUState *cs = CPU(&s->armv7m);
     int asidx;
     //ARMCPU *cpu = ARMCPU(&s->armv7m);
@@ -97,6 +96,8 @@ static void portenta_init(MachineState *machine)
 
 // FLASH_BASE_ADDRESS
 
+#if 0
+
         char *rom_binary = qemu_find_file(QEMU_FILE_TYPE_BIOS, "bootloader.bin");
         if (rom_binary == NULL) {
             error_report("Error: -bios argument not set, and ROM bootloader not found (1)");
@@ -114,8 +115,9 @@ static void portenta_init(MachineState *machine)
         }
 
         g_free(rom_binary);
-}
 #endif
+
+}
 
 
 
@@ -126,10 +128,10 @@ static void portenta_init(MachineState *machine)
     //qemu_devices_reset();
 }
 
-static void portenta_machine_init(MachineClass *mc)
+static void cileva_machine_init(MachineClass *mc)
 {
-    mc->desc = "Portenta stm32h7x7 Machine (Cortex-M4)";
-    mc->init = portenta_init;
+    mc->desc = "Portenta stm32h7a3 Machine (Cortex-M7)";
+    mc->init = cileva_init;
 }
 
-DEFINE_MACHINE("portenta", portenta_machine_init)
+DEFINE_MACHINE("h7a3", cileva_machine_init)
